@@ -1,0 +1,166 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+
+<style>
+    .welcome-left h1 {
+           font-family: 'Poppins', sans-serif;}
+         
+</style>
+</head>
+<body>
+<!-- TOP NAV -->
+<div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+</div>
+	<div class="welcome-section">
+        <div class="welcome-container">
+            <div class="welcome-left">
+               <h1>Welcome Back, {{ request.user.userprofile.full_name.split|first }}</h1>
+                <div class="balance">${{ formatted_total }}</div>
+            </div>
+            <div class="welcome-right">
+            </div>
+        </div>
+    </div>
+    
+	<div class="main-content">
+    
+            <div class="tab-content dastab">
+				<div class="dased">
+					<div class="dasdb1">
+						<h3>Cash Plus Account</h3>						
+						<p>Put your cash to work with a competitive APY and FDIC coverage.</p>
+						<ul>						
+							<li>APY as of 06/12/2025** <span>3.65%</span></li>
+							<li>Minimum balance required <span>$0</span></li>
+							<li>FDIC coverages <span>$1.25M</span></li>
+						</ul>
+						<a class="casbtn erbtn" href="#">Open a Cash Plus account</a>
+					</div>
+					<div class="dasdb2">
+						<h3>Likelihood of Success</h3>
+						<p>Retirement</p>
+						<img class="retimg" src="{% static 'images/99.jpg' %}">
+						<a href="#" class="bthlink erbtn">View more on goals page</a>
+					</div>
+					<div class="dasdb3">
+						<h3>Financial Planning</h3>
+						<div class="dasdb4">
+							<img class="acbtn" src="{% static 'images/image1.png' %}">
+							<h5>James Wills, <br>FTCI</h5>
+							<p>Consumer Protection Lead</p>
+						</div>
+						<div class="bthlinks">
+							<a href="{% url 'calendar' %}" class="bthlink erbtn">Schedule a call</a>
+							<a href="{% url 'compose' %}" class="bthlink erbtn">Send a message</a>
+						</div>
+					</div>
+				</div>
+			</div>
+           </div>
+<script src="{% static 'js/main.js' %}"></script>
+        </body>
+        </html>
+              
+               

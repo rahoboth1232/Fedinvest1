@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crypto Investments</title>
+        
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Elms+Sans:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+    <style>
+       /* Page container */
+.crypto-section {
+    padding: 40px;
+    background: #f8fafc;
+    min-height: 100vh;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Header */
+.crypto-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.crypto-header h1 {
+    font-size: 30px;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.crypto-header i {
+    color: #0ea5e9;
+}
+
+/* Total badge */
+.crypto-total {
+    font-size: 18px;
+    color: #334155;
+}
+
+.total-badge {
+    background: #0ea5e9;
+    padding: 8px 18px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    font-size: 17px;
+}
+
+/* Table card */
+.crypto-table-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+}
+
+/* Table styling */
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 15px;
+}
+
+.crypto-table th {
+    background: #f1f5f9;
+    padding: 14px;
+    color: #334155;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.crypto-table th i {
+    margin-right: 6px;
+    color: #0ea5e9;
+}
+
+.crypto-table td {
+    padding: 14px;
+    border-bottom: 1px solid #e2e8f0;
+    color: #475569;
+}
+
+.crypto-table tr:hover td {
+    background: #f8fafc;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 30px;
+    color: #94a3b8;
+    font-size: 16px;
+}
+.empty-state i {
+    font-size: 20px;
+    margin-right: 5px;
+}
+
+    </style>
+</head>
+
+<body>
+
+<div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+
+<div class="crypto-section">
+
+    <div class="crypto-header">
+        <h1><i class="ri-bit-coin-line"></i> Crypto Investments</h1>
+        <div class="crypto-total">
+            <span>Total Value:</span>
+            <strong class="total-badge">${{ total }}</strong>
+        </div>
+    </div>
+
+    <div class="crypto-table-card">
+        <table class="crypto-table">
+            <thead>
+                <tr>
+                    <th><i class="ri-calendar-line"></i> Date</th>
+                    <th><i class="ri-file-list-3-line"></i> Description</th>
+                    <th><i class="ri-money-dollar-circle-line"></i> Price (USD)</th>
+                    <th><i class="ri-bar-chart-box-line"></i> Quantity</th>
+                    <th><i class="ri-coins-line"></i> Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for c in cryptos %}
+                <tr>
+                    <td>{{ c.date }}</td>
+                    <td>{{ c.description }}</td>
+                    <td>${{ c.price }}</td>
+                    <td>{{ c.quantity }}</td>
+                    <td>{{ c.formatted_amount }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="empty-state">
+                        <i class="ri-emotion-sad-line"></i> No crypto data found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+   
+</body>
+</html>

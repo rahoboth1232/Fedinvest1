@@ -1,0 +1,811 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Log in</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Aoboshi+One&display=swap" rel="stylesheet">
+
+  <style>
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: "Poppins", sans-serif;
+  background-image: url("{% static 'images/home.jpg' %}");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  user-select: none;
+  position: relative;
+  font-size: 14px;
+  height: 100vh;
+}
+a {
+  color: white;
+  text-decoration: none;
+  font-size: 15px;
+  
+}
+/* Header + Navbar */
+header {
+  background: #014997ff;
+  width: 100%;
+  color: white;
+  height: 50px;
+  padding: 0 0 0 60px;
+}
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        padding: 10px 20px;
+      }}
+
+nav {
+  background: #133d63ff;
+  width: 100%;
+  height: 40px;
+  display: flex;
+  justify-content: right;
+  padding: 10px 40px;
+  margin-bottom: 40px;
+}
+
+/* Login Container */
+.container {
+  width: 40%;
+  height:75%;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(5px);
+  border-radius: 12px;
+  padding: 20px;
+}
+h1 {
+  font-weight: 700;
+  font-size: 28px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.columns {
+  display: flex;
+  gap: 25px;
+  width: 100%;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+/* .card {
+  /* padding: 22px 18px 26px 18px;
+  width: 250px; */
+  /* box-sizing: border-box; */
+ 
+
+.skip-password .btn-simple-secure {
+  display: inline-block;
+  padding: 6px 16px;
+  font-weight: 700;
+  font-size: 13px;
+  background-color: #d9ebe8;
+  color: #173f3c;
+  border: 2.7px solid #3a7a77;
+  border-radius: 3px;
+  margin-bottom: 10px;
+}
+.qr-code img {
+  max-width: 85px;
+  margin-left: 16px;
+}
+.skip-password h2 {
+  font-weight: 700;
+  font-size: 20px;
+  margin: 0 0 10px ;
+}
+.skip-password ol {
+  padding-left: 20px;
+  font-size: 14px;
+  color: #000;
+}
+.skip-password ol li {
+  padding: 0 0 10px 0;
+}
+.Links {
+ 
+  font-size: 14px;
+  font-weight: 700;
+  color: #111;
+  display: flex;
+  gap: 10px;
+ 
+}
+.Links a {
+  color: #000;
+  text-decoration: none;
+  border-bottom: #9e9e9e 2px solid;
+  padding-bottom: 5px;
+}
+.Links a:hover {
+  text-decoration: underline;
+}
+
+/* Login form */
+.card.login-form {
+  width: 450px;
+  padding-top: 39px;
+}
+.login-form label {
+  font-size: 12px;
+  margin-bottom: 6px;
+  color: #000;
+  display: block;
+}
+.login-form input[type="text"],
+.login-form input[type="password"] {
+  width: 100%;
+  padding: 9px;
+  font-size: 16px;
+  border: 1.8px solid #2b2b2b;
+  transition: box-shadow 0.15s ease-in-out, border-color 0.15s ease-in-out;
+}
+.login-form input:focus {
+  border-color: #1765bd;
+  box-shadow: 0 0 0 2.4px #b6d0f7;
+}
+.input-password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.password-show {
+  font-size: 14px;
+  color: #1765bd;
+  cursor: pointer;
+  background: none;
+  border: none;
+  position: absolute;
+  right: 14px;
+  top: 7px;
+}
+.login-btn {
+  margin-top: 34px;
+  background-color: #000;
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 17px 40px;
+  margin-bottom: 30px;
+}
+.login-btn:hover { background-color: #222; }
+.forgot-link {
+  margin-top: 40px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1765bd;
+  border-bottom: #1765bd69 2px solid;
+}
+.logo {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2.2rem; /* adjust for navbar */
+  color: white;
+ 
+  border-radius: 8px; /* optional */
+  display: inline-block;
+  margin-bottom: 4px;
+}
+
+.fed {
+  font-weight: 500; /* lighter */
+}
+
+.invest {
+  font-weight: 800; /* bolder */
+  margin-left: 2px; /* small spacing for balance */
+}
+
+
+/* Logo */
+
+.logo span {
+  display: inline-block;
+  animation: scatterReveal 0.6s ease-out forwards;
+}
+@keyframes scatterReveal {
+  from { opacity: 0; transform: translateY(40px) rotate(15deg) scale(0.9); }
+  to { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+}
+
+/* OTP Modal */
+
+.otp-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  font-family: 'Inter', sans-serif;
+}
+
+.otp-modal.show {
+  display: flex;
+}
+
+.otp-box {
+  background: #fff;
+  padding: 50px 60px;
+  border-radius: 18px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  width: 420px; /* slightly larger box */
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.otp-box h2 {
+  font-size: 22px;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.otp-box p {
+  color: #555;
+  font-size: 14px;
+  margin-bottom: 24px;
+}
+
+.otp-inputs {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+  gap: 12px; /* increased gap between inputs */
+}
+
+.otp-inputs input {
+  width: 52px;
+  height: 60px;
+  font-size: 22px;
+  text-align: center;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.otp-inputs input:focus {
+  border-color: #4A90E2;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.4);
+  outline: none;
+}
+
+.verify-btn {
+  width: 100%;
+  background-color: #4A90E2;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 12px 0;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background-color 0.2s ease;
+}
+
+
+
+
+.verify-btn:hover { background-color: #3a7bcc; }
+
+  .custom-alert {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.95);
+  background: #fff;
+  color: #222;
+  font-family: 'Poppins', sans-serif;
+  width: 400px;
+  height: 30vh; /* around 15% of viewport height */
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+  z-index: 9999;
+  text-align: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+}
+
+.custom-alert.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+/* Title (if any) */
+.custom-alert h3 {
+  margin-bottom: 6px;
+  font-size: 17px;
+  color: #d9534f;
+}
+
+/* Message text */
+.custom-alert p {
+  margin-bottom: 12px;
+  font-size: 20px;
+  color: #333;
+   font-weight: bold;
+}
+
+/* OK button */
+.custom-alert button {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.25s ease;
+  margin-top: 13px;
+}
+
+
+.custom-alert button:hover {
+  background: #0056b3;
+}
+
+/* ===== Overlay (dimmed background) ===== */
+.alert-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.alert-overlay.show {
+  opacity: 1;
+
+} 
+.resend-link {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    text-decoration: underline;
+  }
+  .resend-link:hover {
+    color: #0056d2;
+    text-decoration: underline;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* ==============================
+   RESPONSIVE DESIGN FIXES
+   ============================== */
+
+/* Large tablets (max-width: 1200px) */
+@media (max-width: 1200px) {
+  .container {
+    width: 65%;
+  }
+
+  .columns {
+    flex-wrap: wrap;
+    gap: 30px;
+  }
+
+  .card.login-form {
+    width: 80%;
+  }
+}
+
+/* Tablets (max-width: 992px) */
+@media (max-width: 992px) {
+  header {
+    padding: 10px 20px;
+    height: auto;
+    text-align: center;
+  }
+
+  .logo {
+    font-size: 1.8rem;
+  }
+
+  nav {
+    padding: 10px 20px;
+    justify-content: center;
+  }
+
+  .container {
+    width: 75%;
+    padding: 25px;
+  }
+
+  .columns {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .card {
+    width: 100%;
+    padding: 20px;
+  }
+
+  .card.login-form {
+    width: 100%;
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 15px 0;
+  }
+
+  .Links {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-top: 10px;
+  }
+}
+
+/* Mobile devices (max-width: 768px) */
+@media (max-width: 768px) {
+  body {
+    font-size: 13px;
+    background-position: top;
+  }
+
+  .container {
+    width: 90%;
+    padding: 20px;
+    height: auto;
+    margin-top: 20px;
+  }
+
+  h1 {
+    font-size: 24px;
+  }
+
+  .columns {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .card {
+    width: 100%;
+  }
+
+  .card.login-form {
+    width: 100%;
+    padding: 25px;
+  }
+
+  .form-group input {
+    font-size: 15px;
+  }
+
+  .login-btn {
+    width: 100%;
+  }
+
+  .skip-password ol li {
+    font-size: 13px;
+  }
+
+  .otp-box {
+    width: 90%;
+    padding: 30px 25px;
+  }
+
+  .otp-inputs input {
+    width: 45px;
+    height: 50px;
+    font-size: 20px;
+  }
+
+  .verify-btn {
+    font-size: 15px;
+    padding: 10px 0;
+  }
+
+  .custom-alert {
+    width: 90%;
+    height: auto;
+    padding: 20px;
+  }
+
+  .custom-alert p {
+    font-size: 16px;
+   
+  }
+
+  .resend-link {
+    display: block;
+    margin-top: 10px;
+  }
+}
+
+/* Small mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  header {
+    text-align: center;
+    padding: 15px;
+  }
+
+  .logo {
+    font-size: 1.6rem;
+  }
+
+  .container {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .login-btn {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .otp-box {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .otp-inputs input {
+    width: 40px;
+    height: 45px;
+    font-size: 18px;
+  }
+
+  .verify-btn {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .custom-alert {
+    width: 90%;
+    height: auto;
+    font-size: 14px;
+     font-weight: bold;
+  }
+
+  .custom-alert p {
+    font-size: 14px;
+    font-weight: bold;
+  }
+}
+
+
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">
+   <a href="{% url 'home' %}">
+  <h1 class="logo">
+    <span class="fed">Fed</span><span class="invest">Invest</span>
+  </h1>
+</a>
+  </div>
+</header>
+<nav class="navbar1"></nav>
+
+<div class="container" role="main">
+
+  <h1>Log in</h1>
+
+  <main>
+
+    <div class="columns">
+
+      <!-- Left Side -->
+      <section class="card skip-password">
+        <div class="btn-simple-secure">Simple and secure</div>
+
+        <div class="qr-code">
+          <img src="{% static 'images/qr-code.svg' %}" alt="QR Code" />
+        </div>
+
+        <h2>Skip the password</h2>
+
+        <ol>
+          <li>Select get QR code and scan the code with your device's camera</li>
+          <li>We'll confirm it's you with biometrics with our app </li>
+       
+          <li>Return here — You’re all set!</li>
+        </ol>
+
+      </section>
+
+      <!-- Right Side -->
+      <section class="card login-form">
+
+        <form id="loginform" action="{% url 'login' %}" method="post" novalidate>
+          {% csrf_token %}
+
+          <div class="form-group">
+            <label for="user_login">Username or Email</label>
+            <input type="text" name="username" id="user_login" placeholder="Enter username or email" required />
+          </div>
+
+          <div class="form-group">
+            <label for="user_pass">Password</label>
+            <span class="input-password-wrapper">
+              <input type="password" name="password" id="user_pass" placeholder="Enter password" required />
+              <button type="button" class="password-show" onclick="togglePassword()">Show</button>
+            </span>
+          </div>
+
+          <div class="form-group">
+            <button type="submit" class="login-btn">Log in</button>
+          </div>
+
+          {% if error %}
+            <p style="color: red; text-align: center;">{{ error }}</p>
+          {% endif %}
+        </form>
+
+        <a href="#" class="forgot-link erbtn">Forgot your username or password?</a>
+
+      </section>
+
+    </div><!-- END .columns -->
+
+
+      <div class="Links">
+          <a href="#" class="erbtn">Open a new account</a>
+          <span class="separator">|</span>
+          <a href="#" class="erbtn">Set up online access</a>
+        </div>
+
+  </main>
+
+</div><!-- END .container -->
+
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+<!-- OTP Modal -->
+<div id="otpModal" class="otp-modal {% if show_otp %}show{% endif %}">
+  <div class="otp-box">
+    <h2>Two-Factor Authentication</h2>
+    <p>  Enter the code that has been sent to your registered phone number  </p>
+    <form method="POST" action="{% url 'login' %}" class="otp-form">
+      {% csrf_token %}
+  <input type ="hidden" name="set_otp" value="1">
+      <div class="otp-inputs">
+ <input type="number" name="otp1" oninput="this.value=this.value.slice(0,1)" required>
+<input type="number" name="otp2" oninput="this.value=this.value.slice(0,1)" required>
+<input type="number" name="otp3" oninput="this.value=this.value.slice(0,1)" required>
+<input type="number" name="otp4" oninput="this.value=this.value.slice(0,1)" required>
+<input type="number" name="otp5" oninput="this.value=this.value.slice(0,1)" required>
+<input type="number" name="otp6" oninput="this.value=this.value.slice(0,1)" required>
+      </div>
+      {% if messages %}
+      {% for message in messages %}
+      <p style="color: red; text-align: center;">{{message}}</p>
+      {% endfor %}
+      {% endif %}
+      <button type="submit" class="verify-btn">Verify</button>
+      {% if otp_stage == "set" %}
+  <script>
+    document.querySelector(".otp-form").addEventListener("submit", function(e) {
+      const inputs = document.querySelectorAll(".otp-inputs input");
+      const otp = Array.from(inputs).map(i => i.value).join("");
+      if (otp.length === 6) {
+        // store OTP in hidden input so Django saves it
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = "otp";
+        input.value = otp;
+        this.appendChild(input);
+      }
+    });
+  </script>
+{% endif %}
+      </script>
+       <a class="resend-link" id="resendOtpBtn">Resend OTP</a>
+    </form>
+  </div>
+</div>
+</body>
+<script>
+function togglePassword() {
+  const pass = document.getElementById("user_pass");
+  const btn = document.querySelector(".password-show");
+  if (pass.type === "password") {
+    pass.type = "text";
+    btn.textContent = "Hide";
+  } else {
+    pass.type = "password";
+    btn.textContent = "Show";
+  }
+}
+
+// OTP auto-focus
+document.querySelectorAll('.otp-inputs input').forEach((input, index, inputs) => {
+  input.addEventListener('input', () => {
+    if (input.value && index < inputs.length - 1) {
+      inputs[index + 1].focus();
+    }
+  });
+});
+
+// Custom alert for “Contact Account Manager”
+
+
+
+  
+
+
+// Handle both .erbtn and .resend-link click popups
+document.querySelectorAll(".erbtn, .resend-link").forEach(el => {
+  el.addEventListener("click", e => {
+    e.preventDefault();
+
+    if (el.classList.contains("erbtn")) {
+      showCustomAlert('Please Contact Your Case Representative');
+    } 
+    else if (el.classList.contains("resend-link")) {
+      showCustomAlert('✅ OTP has been sent successfully');
+    }
+  });
+});
+
+function showCustomAlert(message) {
+  // Remove any existing alerts
+  document.querySelector(".custom-alert")?.remove();
+  document.querySelector(".alert-overlay")?.remove();
+
+  // Create overlay
+  const overlay = document.createElement("div");
+  overlay.className = "alert-overlay show";
+
+  // Create alert box
+  const alertBox = document.createElement("div");
+  alertBox.className = "custom-alert show";
+  alertBox.innerHTML = `
+    <p>${message}</p>
+    <button id="closeAlert">OK</button>
+  `;
+
+  // Add to DOM
+  document.body.appendChild(overlay);
+  document.body.appendChild(alertBox);
+
+  // Close handler
+  document.getElementById("closeAlert").addEventListener("click", () => {
+    alertBox.classList.remove("show");
+    overlay.classList.remove("show");
+    setTimeout(() => {
+      alertBox.remove();
+      overlay.remove();
+    }, 300);
+  });
+}
+
+</script>
+
+</body>
+</html>

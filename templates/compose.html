@@ -1,0 +1,288 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Compose Message</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+ 
+    <style>
+        .compose {
+            margin: 0;
+            padding: 0;
+            background: #f4f6fa;
+            font-family: "Poppins", sans-serif;
+        }
+
+        /* ===== Main Container ===== */
+        .compose-wrapper {
+            max-width: 700px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 14px;
+            padding: 35px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.10);
+        }
+
+        .compose-wrapper h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 700;
+            color: #012f62;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        /* ===== Form ===== */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            display: block;
+        }
+input, textarea {
+    width: 100%;
+    padding: 12px 14px;     /* FIX: even balanced padding */
+    border-radius: 10px;
+    border: 1px solid #b9c5d6;
+    font-size: 14px;
+    background: #fafcff;
+    box-sizing: border-box; /* FIX: prevents right-side overflow */
+}
+
+
+        textarea {
+            height: 120px;
+            resize: none;
+        }
+
+        /* ===== Submit Button ===== */
+        button.send-btn {
+            padding: 14px;
+            background: linear-gradient(135deg, #014997, #133d63);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button.send-btn:hover {
+            opacity: 0.88;
+            transform: translateY(-2px);
+        }
+
+        /* ===== Popup Alert ===== */
+        .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: #fff;
+            width: 380px;
+            max-width: 90%;
+            padding: 25px;
+            border-radius: 14px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        }
+
+        .custom-alert.show {
+            display: flex;
+            animation: pop .25s ease-out;
+        }
+
+        @keyframes pop {
+            from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+            to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.40);
+            z-index: 9998;
+            display: none;
+        }
+
+        .alert-overlay.show {
+            display: block;
+        }
+
+        /* Popup OK Button */
+        .alert-ok {
+            margin-top: 15px;
+            padding: 10px 18px;
+            background: #014997;
+            color: #fff;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .alert-ok:hover {
+            background: #0b3b70;
+        }
+    </style>
+</head>
+
+<body>
+<div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+
+
+<div class="compose">
+<div class="compose-wrapper">
+    <h2>Compose Message</h2>
+
+    <form id="composeForm">
+        <div class="form-group">
+            <label>To</label>
+            <input type="text" name="to" placeholder="Recipient Name" required>
+        </div>
+
+        <div class="form-group">
+            <label>Subject</label>
+            <input type="text" name="subject" placeholder="Enter subject" required>
+        </div>
+
+        <div class="form-group">
+            <label>Message</label>
+            <textarea name="body" placeholder="Write your message..." required></textarea>
+        </div>
+
+        <button type="submit" class="send-btn">Send Message</button>
+    </form>
+</div>
+</div>
+<!-- ===== Success Popup ===== -->
+<div class="alert-overlay"></div>
+<div class="custom-alert">
+    <p id="alertText"></p>
+    <button class="alert-ok" onclick="closeAlert()">OK</button>
+</div>
+
+<script>
+document.getElementById("composeForm").addEventListener("submit", function (e) {
+    e.preventDefault(); 
+    showAlert("Message sent successfully 🎉");
+});
+
+function showAlert(msg) {
+    document.getElementById("alertText").innerHTML = msg;
+    document.querySelector(".custom-alert").classList.add("show");
+    document.querySelector(".alert-overlay").classList.add("show");
+}
+
+function closeAlert() {
+    document.querySelector(".custom-alert").classList.remove("show");
+    document.querySelector(".alert-overlay").classList.remove("show");
+    window.location.href = "{% url 'messages' %}";
+}
+</script>
+
+</body>
+</html>

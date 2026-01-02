@@ -1,0 +1,571 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FedInvest User Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+   .profile_main  {
+      font-family: "Poppins", sans-serif;
+      background: #f8fafc;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+   
+   
+
+    
+    /* Main Content */
+    main {
+      flex: 1;
+      padding: 20px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .profile-wrapper {
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 8px;
+    }
+
+    .page-subtitle {
+      font-size: 14px;
+      color: #64748b;
+    }
+    .profile-card {
+      background: #ffffff;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+      overflow: hidden;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+        /* #073A6B  */
+    .profile-header {
+      background: linear-gradient(135deg, #207aad 0%, #4bb3ff 100%);
+      padding: 20px;
+      color: white;
+      text-align: center;
+      position: relative;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      font-size: 48px;
+      font-weight: 600;
+      color: white;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .profile-email {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .profile-body {
+      padding: 40px;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #1e293b;
+      margin-bottom: 24px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e2e8f0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #475569;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-input,
+    .form-display {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1e293b;
+      transition: all 0.3s ease;
+      background: #ffffff;
+      font-family: "Poppins", sans-serif;
+    }
+    .form-display {
+      background: #f8fafc;
+      color: #334155;
+      font-weight: 500;
+      border-color: #e2e8f0;
+    }
+
+    .form-input:focus {
+      border-color: #207aad;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(32, 122, 173, 0.1);
+      background: #ffffff;
+    }
+
+    .form-input:disabled {
+      background: #f1f5f9;
+      cursor: not-allowed;
+      color: #64748b;
+    }
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: "Poppins", sans-serif;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: #207aad;
+      color: #fff;
+      box-shadow: 0 4px 6px rgba(32, 122, 173, 0.2);
+    }
+
+    .btn-primary:hover {
+      background: #1a6b8f;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(32, 122, 173, 0.3);
+    }
+
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+      border: 2px solid #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+    }
+
+    .status-message {
+      margin-top: 20px;
+      padding: 14px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      text-align: center;
+      display: none;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 2px solid #10b981;
+      display: block;
+    }
+
+    .status-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 2px solid #ef4444;
+      display: block;
+    }
+
+    /* Footer */
+    footer {
+      background: #1e293b;
+      color: #cbd5e1;
+      text-align: center;
+      padding: 20px;
+      font-size: 13px;
+      margin-top: 40px;
+    }
+.profile-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;                /* crop to circle properly */
+    display: block;
+    border-radius: 50%;
+}
+   
+  </style>
+</head>
+
+<body>
+<div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'portfolio' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+<div class="profile_main">
+  <!-- Main Content -->
+  <main>
+    <div class="profile-wrapper">
+      <div class="page-header">
+        <h1 class="page-title">My Profile</h1>
+        <p class="page-subtitle">Manage your personal information and account settings</p>
+      </div>
+
+      <div class="profile-card">
+        <!-- Profile Header -->
+        <div class="profile-header">
+         
+
+          <div class="profile-avatar">
+    {% if user.userprofile.image %}
+        <img src="{{ user.userprofile.image.url }}" alt="Profile Picture">
+    {% else %}
+<img src="{% static 'images/default-user.jpg' %}">
+
+    {% endif %}
+</div>
+
+          
+          <h2 class="profile-name">{{ profile.full_name|default:"User" }}</h2>
+          <p class="profile-email">{{ profile.email|default:"No email provided" }}</p>
+        </div>
+
+        <!-- Profile Body -->
+        <div class="profile-body">
+          <form id="profileForm" method="POST" action="{% url 'update_profile' profile.user.id %}">
+            {% csrf_token %}
+            
+            <h3 class="section-title">Personal Information</h3>
+            
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="full_name">Full Name</label>
+                <p>
+                  {{ profile.full_name|default:'' }}
+                
+                
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="email">Email Address</label>
+                <p>
+
+                 
+                  {{ profile.email|default:"No email provided" }}
+                
+                </p>
+              </div>
+
+              <div class="form-group">
+                <label for="mobile">Mobile Number</label>
+                <p>
+                 
+                  {{ profile.masked_mobile}}
+                 
+            
+                </p>
+              </div>
+
+              <div class="form-group">
+              {% if profile.masked_ssn %}
+                <label for="ssn">SSN </label> 
+                 
+                   <p>{{ profile.masked_ssn }}</p>
+
+              
+        {% endif %}
+            </div>
+         <div class="form-group">
+          {% if profile.date_of_birth %}
+    <label>Date of Birth</label>
+    <p>{{ profile.date_of_birth|date:"M d Y" }}</p>
+{% endif %}
+
+
+  </div>
+  <div class="form-group">
+          {% if profile.address %}
+    <label>Address</label>
+    <p>{{ profile.address}}</p>
+{% endif %}
+
+
+  </div>
+ 
+
+  </div>
+            </div>
+         
+
+            <div class="status-message" id="statusMsg"></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    © 2022 FedInvest Stock Platform — All Rights Reserved
+  </footer>
+  </div>
+<script src="{% static 'js/main.js' %}"></script>
+
+  <script>
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const statusMsg = document.getElementById('statusMsg');
+      const submitBtn = this.querySelector('button[type="submit"]');
+      
+      const formData = {
+        full_name: document.getElementById('full_name').value,
+        mobile: document.getElementById('mobile').value,
+        ssn: document.getElementById('ssn').value || null
+      };
+      
+      statusMsg.style.display = 'none';
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>⏳</span> Saving...';
+      
+      try {
+        const response = await fetch(this.action, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+          },
+          body: JSON.stringify(formData)
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          statusMsg.className = 'status-message status-success';
+          statusMsg.textContent = '✅ Profile updated successfully!';
+          statusMsg.style.display = 'block';
+          
+          // Update displayed name in header
+          const nameInput = document.getElementById('full_name').value;
+          document.querySelector('.profile-name').textContent = nameInput;
+          
+          // Update avatar initials
+          const initials = nameInput.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+          document.querySelector('.profile-avatar').textContent = initials;
+          
+          // Reset form state after 3 seconds
+          setTimeout(() => {
+            statusMsg.style.display = 'none';
+          }, 3000);
+        } else {
+          statusMsg.className = 'status-message status-error';
+          const errorMsg = data.full_name || data.mobile || data.ssn || data.detail || 'Failed to update profile';
+          statusMsg.textContent = '❌ Error: ' + (Array.isArray(errorMsg) ? errorMsg[0] : errorMsg);
+          statusMsg.style.display = 'block';
+        }
+      } catch (error) {
+        statusMsg.className = 'status-message status-error';
+        statusMsg.textContent = '❌ Network error. Please try again.';
+        statusMsg.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<span>💾</span> Save Changes';
+      }
+    });
+
+    // Format SSN input
+    const ssnInput = document.getElementById('ssn');
+    if (ssnInput) {
+      ssnInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 3) value = value.slice(0, 3) + '-' + value.slice(3);
+        if (value.length > 6) value = value.slice(0, 6) + '-' + value.slice(6, 10);
+        e.target.value = value;
+      });
+    }
+
+    // Format phone number input
+    const mobileInput = document.getElementById('mobile');
+    if (mobileInput) {
+      mobileInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length > 0) {
+          if (value.length <= 3) {
+            value = '(' + value;
+          } else if (value.length <= 6) {
+            value = '(' + value.slice(0, 3) + ') ' + value.slice(3);
+          } else {
+            value = '(' + value.slice(0, 3) + ') ' + value.slice(3, 6) + '-' + value.slice(6, 10);
+          }
+        }
+        e.target.value = value;
+      });
+    }
+  </script>
+
+</body>
+</html>

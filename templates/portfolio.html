@@ -1,0 +1,588 @@
+{% load static %}
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Investment Portfolio — Candlestick</title>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <!-- Lightweight Charts (TradingView) -->
+  <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    /* ---------- Base / layout ---------- */
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --primary:#0a57ff;
+      --muted:#6b7280;
+      --success:#10b981;
+      --danger:#ef4444;
+      --shadow: rgba(2,6,23,0.08);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:'Poppins',sans-serif;
+      background:var(--bg);
+      color:#111827;
+    }
+
+    /* Sidebar */
+    .sidebar{
+      width:220px;
+      position:fixed;
+      left:0; top:0; bottom:0;
+      background:var(--card);
+      box-shadow: 4px 0 18px var(--shadow);
+      padding:22px;
+    }
+    .brand{
+      font-weight:700;color:var(--primary);font-size:20px;margin-bottom:22px;
+    }
+    .nav a{display:block;color:#374151;text-decoration:none;padding:10px 6px;border-radius:8px;margin-bottom:6px;font-weight:500}
+    .nav a.active, .nav a:hover{background:#eef2ff;color:var(--primary)}
+
+    /* Main content */
+    .main{margin-left:240px;padding:24px;}
+    .topbar{
+      display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;
+    }
+    .page-title{font-size:24px;font-weight:700}
+    .top-actions{display:flex;gap:10px;align-items:center}
+
+    .btn{
+      background:var(--primary); color:white; border:none; padding:10px 14px; border-radius:8px;
+      cursor:pointer; font-weight:600; text-decoration:none; display:inline-block ;
+    }
+    .btn:hover {
+    background: #042b66;   
+}
+    .btn.secondary{background:#ffffff;color:var(--primary);border:1px solid #dde6ff}
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 360px;
+      gap:18px;
+      align-items:start;
+    }
+
+    .card{
+      background:var(--card); border-radius:12px; padding:16px; box-shadow:0 6px 24px var(--shadow);
+    }
+
+    #chart-container{
+      height: 420px;
+      border-radius:10px;
+      overflow:hidden;
+      background: linear-gradient(180deg,#ffffff,#fbfdff);
+      border:1px solid #eef2ff;
+    }
+
+    .ticker{
+      display:flex;gap:12px;align-items:center;overflow:hidden;padding:10px;border-radius:8px;margin-bottom:12px;background:#fff;border:1px solid #f1f5f9;
+    }
+    .ticker-item{font-weight:600;color:#111827;white-space:nowrap}
+    .ticker-item .pct{font-weight:700;margin-left:6px}
+
+    .table-wrap{margin-top:16px}
+    table{width:100%;border-collapse:collapse}
+    thead th{background:#f1f6ff;padding:14px;text-align:left;font-size:12px;color:#374151;text-transform:uppercase;border-bottom:2px solid #e6eefc}
+    td{padding:12px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#111827}
+    tbody tr:hover{background:#fbfdff}
+    .symbol{font-weight:700;color:var(--primary)}
+    .price{font-weight:600}
+    .green{color:var(--success)}
+    .red{color:var(--danger)}
+
+    .summary{
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .summary .stat{background:var(--card);padding:14px;border-radius:10px;box-shadow:0 6px 18px var(--shadow)}
+    .stat .label{font-size:13px;color:var(--muted);font-weight:600}
+    .stat .value{font-size:20px;font-weight:700;margin-top:6px}
+
+    @media (max-width: 980px){
+      .grid{grid-template-columns: 1fr}
+      .main{padding:18px}
+      .sidebar{display:none}
+      .main{margin-left:0}
+      #chart-container{height:300px}
+    }
+    
+    .logo {
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 35px;
+  display: inline-flex;
+ letter-spacing: 0.5px;
+  color: #073A6B; /* Violet */
+  text-shadow: 0 0 8px rgba(35, 64, 190, 0.5);
+  width: 500px;
+
+ 
+  
+}
+#live-section {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  background: #fff;
+  padding: 10px;
+  position: relative;
+}
+
+.ticker-track {
+  display: inline-block;
+  white-space: nowrap;
+  animation: tickerScroll 20s linear infinite;
+}
+
+.ticker-item {
+  display: inline-block;
+  margin-right: 40px;
+  font-weight: 600;
+  font-size: 18px;
+ color: inherit ;
+}
+
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <div class="logo">
+             <h1 class="logo">
+  <span class="f">F</span>
+  <span class="e">e</span>
+  <span class="d">d</span>
+  <span class="i">I</span>
+  <span class="n">n</span>
+  <span class="v">v</span>
+  <span class="e2">e</span>
+  <span class="s">s</span>
+  <span class="t">t</span>
+</h1>
+                                
+            </div>
+    <nav class="nav">
+      <a href="{% url 'dashboard' %}" class="active">Dashboard</a>
+      <a href="{% url 'holdings' %}">Holdings</a>
+      <a href="{% url 'balance' %}">Balance</a>
+      <a href="{% url 'activity' %}">Activity</a>
+      <a href="{% url 'performance' %}">Performance</a>
+       <a href="{% url 'logout' %}">Logout</a>
+    </nav>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title">Investment Portfolio</div>
+      <div class="top-actions">
+        <a class="btn" href="{% url 'buy_stock' %}">Buy</a>
+        
+        <a class="btn" href="{% url 'transactions' %}">Activity</a>
+        
+         
+      </div>  
+    </div>
+<div class="tradingview-widget-container">
+  <div class="tradingview-widget-container__widget"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/markets/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a><span class="trademark"></span></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+  {
+  "symbols": [
+    {
+      "proName": "NASDAQ:NVDA",
+      "title": "Nvidia"
+    },
+    {
+      "proName": "NASDAQ:TSLA",
+      "title": "Tesla"
+    },
+    {
+      "proName": "NASDAQ:AAPL",
+      "title": "Apple"
+    },
+    {
+      "proName": "NASDAQ:META",
+      "title": "Meta"
+    },
+    {
+      "proName": "NASDAQ:MSFT",
+      "title": "Microsoft"
+    },
+    {
+      "proName": "NASDAQ:GOOGL",
+      "title": "Google"
+    }
+  ],
+  "colorTheme": "light",
+  "locale": "en",
+  "largeChartUrl": "",
+  "isTransparent": false,
+  "showSymbolLogo": true,
+  "displayMode": "adaptive"
+}
+  </script>
+</div>
+<!-- TradingView Widget END -->
+    
+
+    <div class="grid">
+
+      <!-- Left: Chart + Holdings Table -->
+      <div>
+        <!-- Chart card -->
+        <div class="card">
+
+         
+
+          
+<!-- TradingView Widget BEGIN -->
+<div class="tradingview-widget-container" style="height: 500px;">
+  <div id="tradingview_chart"></div>
+
+  <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+  <script type="text/javascript">
+    new TradingView.widget({
+      "width": "100%",
+      "height": "500",
+      "symbol": "{{ symbol }}",     // YOUR STOCK SYMBOL (Dynamic Django)
+      "interval": "D",
+      "timezone": "Etc/UTC",
+      "theme": "light",
+      "style": "1",
+      "locale": "en",
+      "toolbar_bg": "#f1f3f6",
+      "enable_publishing": false,
+      "allow_symbol_change": true,
+      "container_id": "tradingview_chart"
+    });
+  </script>
+</div>
+<!-- TradingView Widget END -->
+
+          
+        </div>
+
+        <!-- Holdings table -->
+        <div class="card table-wrap" style="margin-top:16px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <div style="font-weight:700">Your Holdings</div>
+            <div style="color:var(--muted);font-size:13px">Live prices from holdings API</div>
+          </div>
+
+          <table id="holdings-table">
+            <thead>
+              <tr>
+                <th>Symbol</th>
+                 <th>Company Name</th>
+                <th>change</th>
+                <th>Qty</th>
+                <th>Price</th>
+                 <th>Total Price</th>
+                <th>Buy</th>
+                <th>Sell</th>
+              </tr>
+            </thead>
+            <tbody id="holdings-body">
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right: Summary -->
+      <div class="summary">
+        <div class="stat card">
+          <div class="label">Cash Account</div>
+          <div class="value" id="raw_total">$0.00</div>
+        </div>
+
+        <div class="stat card">
+          <div class="label">Portfolio Total</div>
+          <div class="value" id="portfolio-total">$0.00</div>
+        </div>
+
+        <div class="stat card">
+          <div class="label" >Today Change</div>
+          <div class="value" id="total-daily-change"> 0%<span id="today-pct" style="font-size:13px;color:var(--muted)"></span></div>
+        </div>
+
+
+        <div class="stat card">
+          <div class="label">Total Holdings</div>
+          <div class="value" id="holdings-count">0</div>
+        </div>
+        
+        <div class="stat  card">
+<div class="tradingview-widget-container">
+  <div class="tradingview-widget-container__widget"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a><span class="trademark"> </span></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+  {
+  "symbol": "NASDAQ:AAPL",
+  "chartOnly": false,
+  "dateRange": "12M",
+  "noTimeScale": false,
+  "colorTheme": "light",
+  "isTransparent": false,
+  "locale": "en",
+  "width": "100%",
+  "autosize": true,
+  "height": "100%"
+}
+  </script>
+</div>
+        </div>
+        
+        <div class="stat  card">
+<div class="tradingview-widget-container">
+  <div class="tradingview-widget-container__widget"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a><span class="trademark"> </span></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+  {
+  "symbol": "NASDAQ:MSFT",
+  "chartOnly": false,
+  "dateRange": "12M",
+  "noTimeScale": false,
+  "colorTheme": "light",
+  "isTransparent": false,
+  "locale": "en",
+  "width": "100%",
+  "autosize": true,
+  "height": "100%"
+}
+  </script>
+</div>
+        </div>
+        <div class="stat  card">
+<div class="tradingview-widget-container">
+  <div class="tradingview-widget-container__widget"></div>
+  <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/symbols/NASDAQ-AAPL/" rel="noopener nofollow" target="_blank"><span class="blue-text"></span></a><span class="trademark"></span></div>
+  <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+  {
+  "symbol": "NASDAQ:GOOG",
+  "chartOnly": false,
+  "dateRange": "12M",
+  "noTimeScale": false,
+  "colorTheme": "light",
+  "isTransparent": false,
+  "locale": "en",
+  "width": "100%",
+  "autosize": true,
+  "height": "100%"
+}
+  </script>
+</div>
+        </div>
+        
+       
+
+      </div>
+    </div>
+  </div>
+
+
+</div>
+
+  <script>
+
+
+let previousPrices = {}; 
+
+const HOLDINGS_API = '/api/holdings/';
+let pollIntervalMs = 5000; 
+let candleIntervalSec = 60; 
+let pollingTimer = null;
+let paused = false;
+
+let currentCandle = null;
+let candles = [];
+
+
+
+
+async function pollHoldingsOnce() {
+  if (paused) return;
+
+  try {
+    const res = await fetch(HOLDINGS_API, { credentials: 'same-origin' });
+    if (!res.ok) throw new Error('Bad response');
+
+    const data = await res.json();
+    console.log(data)
+
+    renderHoldingsTable(data);
+
+    // ✔ Read REAL values directly from backend
+    const portfolio_total = Number(data.portfolio_total) || 0;
+    const raw_total = Number(data.raw_total) || 0;
+    const brokerage_balance = Number(data.brokerage_balance) || 0;
+
+    // ✔ Update UI
+    document.getElementById('portfolio-total').textContent = formatMoney(portfolio_total);
+    document.getElementById('raw_total').textContent = formatMoney(raw_total);
+
+    document.getElementById('holdings-count').textContent = (data.holdings || []).length;
+
+    const now = new Date();
+    addSampleToCandle(portfolio_total, now);
+
+  } catch (err) {
+    console.error('Holdings poll error', err);
+  }
+}
+
+
+
+
+pollHoldingsOnce()
+function formatMoney(num) {
+  const n = Number(num) || 0;
+  return '$' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function renderHoldingsTable(data) {
+  const tbody = document.getElementById('holdings-body');
+  
+  tbody.innerHTML = '';
+
+  const holdings = (data && data.holdings) ? data.holdings : [];
+  let totalDailyChange = 0;
+
+  if (holdings.length === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = '<td colspan="7" style="text-align:center;color:#6b7280;padding:18px">No holdings</td>';
+    tbody.appendChild(tr);
+    return;
+  }
+
+  holdings.forEach(h => {
+
+
+    const symbol = h.symbol || '—';
+    const change = h.change_percent || '—';
+    const company=h.company_name || '—';
+    const qty = h.quantity || 0;
+    const live = Number(h.live_price) || 0;
+    const value = Number(h.total_value) || (qty * live);
+const tr = document.createElement('tr');
+const changeColor = change < 0 ? "red" : "green";
+const stockChangeValue = value * (change / 100);
+totalDailyChange += stockChangeValue;
+
+const detailUrl = `/stock/${encodeURIComponent(symbol)}/`;
+
+
+tr.innerHTML = `
+    <td>
+        <a href="${detailUrl}" class="symbol">${symbol}</a>
+    </td>
+      <td class="price">${company}</td>
+    <td style="color:${changeColor}; font-weight:600;">
+        ${change}%
+    </td>
+    <td>${qty}</td>
+   
+    <td class="price">${formatMoney(live)}</td>
+    <td class="price">${formatMoney(value)}</td>
+    <td><a class="btn" href="/buy/" style="background:#06b6d4">Buy</a></td>
+    <td><a class="btn" href="/sell/${encodeURIComponent(symbol)}/" style="background:#ef4444">Sell</a></td>
+`;
+
+tbody.appendChild(tr);
+
+    
+// ===========================
+// LIVE TICKER (SEAMLESS)
+// ===========================
+// ===========================
+// LIVE TICKER (SEAMLESS LOOP)
+// ===========================
+
+    
+  });
+
+const totalColor = totalDailyChange < 0 ? "red" : "green";
+
+document.getElementById("total-daily-change").innerHTML = `
+     <span style="color:${totalColor}">
+        ${formatMoney(totalDailyChange)}
+    </span>
+`;
+
+
+}
+
+function startPolling() {
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollingTimer = setInterval(pollHoldingsOnce, pollIntervalMs);
+  pollHoldingsOnce();
+}
+
+function stopPolling() {
+  if (pollingTimer) clearInterval(pollingTimer);
+  pollingTimer = null;
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('candle-interval').addEventListener('change', function(e){
+    candleIntervalSec = Number(e.target.value);
+    finalizeCandle();
+  });
+
+  document.getElementById('poll-interval').addEventListener('change', function(e){
+    pollIntervalMs = Number(e.target.value);
+    startPolling();
+  });
+
+  document.getElementById('pauseBtn').addEventListener('click', function(e){
+    paused = !paused;
+    e.target.textContent = paused ? 'Resume' : 'Pause';
+  });
+
+  (function seedInitialCandles(){
+    const now = Math.floor(Date.now() / 1000);
+    const seedCount = 200;
+    let base = 10000;
+    for (let i = seedCount - 1; i >= 0; i--){
+      const t = now - (i * candleIntervalSec);
+      const open = base + (Math.random()-0.5)*200;
+      const close = open + (Math.random()-0.5)*200;
+      const high = Math.max(open, close) + Math.random()*80;
+      const low = Math.min(open, close) - Math.random()*80;
+      candles.push({time: t, open, high, low, close});
+    }
+    candleSeries.setData(candles);
+  })();
+
+  startPolling();
+});
+
+window.addEventListener('resize', function(){
+  chart.applyOptions({ width: document.getElementById('chart-container').clientWidth });
+});
+
+setInterval(function(){
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (currentCandle) {
+    const currentBucket = Math.floor(nowSec / candleIntervalSec) * candleIntervalSec;
+    if (currentCandle.time < currentBucket) {
+      finalizeCandle();
+    }
+  }
+}, 1000);
+
+</script>
+
+</body>
+</html>

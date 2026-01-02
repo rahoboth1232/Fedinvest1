@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TradingHub Pro - Real-Time Market Data</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%); */
+            z-index: -1;
+        }
+
+        /* .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        } */
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-50px, -50px) rotate(180deg); }
+        }
+
+        /* Header */
+        header {
+            /* background: rgba(15, 20, 40, 0.9); */
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.5);
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(102, 126, 234, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(102, 126, 234, 0.8); }
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .header-nav {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .nav-item {
+            color: #a0aec0;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-item:hover {
+            color: #667eea;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            /* background: rgba(16, 185, 129, 0.1); */
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #10b981;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #10b981;
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .trade-btn {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .trade-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.6);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px 25px;
+        }
+
+        /* Ticker Tape */
+        .ticker-wrapper {
+            margin-bottom: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        /* Three Column Grid */
+        .three-col-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .market-card {
+            /* background: rgba(15, 20, 40, 0.6); */
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .market-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .market-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(102, 126, 234, 0.5);
+            box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-badge {
+            padding: 4px 10px;
+            /* background: rgba(102, 126, 234, 0.2); */
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .center-card {
+            /* background: rgba(20, 25, 50, 0.8); */
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .center-card::before {
+            height: 4px;
+            background: linear-gradient(90deg, #10b981 0%, #667eea 50%, #ef4444 100%);
+        }
+
+        /* Hot List Compact */
+        .hotlist-compact {
+            height: 500px;
+            overflow: hidden;
+        }
+
+        /* Two Column Grid */
+        .two-col-grid {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .heatmap-card {
+            /* background: rgba(15, 20, 40, 0.6); */
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .heatmap-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            /* background: linear-gradient(90deg, #ef4444 0%, #10b981 100%); */
+        }
+
+        /* Info Cards */
+        .info-cards {
+            display: grid;
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .info-card {
+            /* background: rgba(15, 20, 40, 0.6); */
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            /* background: linear-gradient(90deg, #667eea 0%, #764ba2 100%); */
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .metric-item {
+            /* background: rgba(102, 126, 234, 0.1); */
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #a0aec0;
+            margin-bottom: 5px;
+        }
+
+        .metric-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .metric-change {
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .positive {
+            color: #10b981;
+        }
+
+        .negative {
+            color: #ef4444;
+        }
+
+        /* Bottom Chart */
+        .chart-card {
+            /* background: rgba(15, 20, 40, 0.6); */
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            margin-bottom: 30px;
+        }
+
+        /* Responsive */
+        @media(max-width: 1200px) {
+            .three-col-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .two-col-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-nav {
+                display: none;
+            }
+        }
+
+        @media(max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .status-indicator {
+                display: none;
+            }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 20, 40, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(102, 126, 234, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="bg-animation"></div>
+
+<!-- Header -->
+<header>
+    <div class="header-content">
+        <div class="logo">
+            <div class="logo-icon">📈</div>
+            <h1>FedInvest</h1>
+        </div>
+        <nav class="header-nav">
+            <div class="nav-item">Markets</div>
+            <div class="nav-item">Portfolio</div>
+            <div class="nav-item">Watchlist</div>
+            <div class="nav-item">Analytics</div>
+        </nav>
+        <div class="header-actions">
+            <div class="status-indicator">
+                <div class="status-dot"></div>
+                LIVE
+            </div>
+            <button class="trade-btn" onclick="location.href='/buy'">Start Trading</button>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Ticker Tape -->
+    <div class="ticker-wrapper">
+        <div class="tradingview-widget-container">
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+            {
+                "symbols": [
+                    {"proName": "NASDAQ:NVDA", "title": "Nvidia"},
+                    {"proName": "NASDAQ:TSLA", "title": "Tesla"},
+                    {"proName": "NASDAQ:AAPL", "title": "Apple"},
+                    {"proName": "NASDAQ:META", "title": "Meta"},
+                    {"proName": "NASDAQ:MSFT", "title": "Microsoft"},
+                    {"proName": "NASDAQ:GOOGL", "title": "Google"},
+                    {"proName": "NASDAQ:AMZN", "title": "Amazon"},
+                    {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"},
+                    {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"}
+                ],
+                "colorTheme": "dark",
+                "locale": "en",
+                "isTransparent": true,
+                "showSymbolLogo": true,
+                "displayMode": "adaptive"
+            }
+            </script>
+        </div>
+    </div>
+
+    <!-- Three Column Grid: Forex | Live Market | Crypto -->
+    <div class="three-col-grid">
+        
+        <!-- Forex Card -->
+        <div class="market-card">
+            <div class="card-header">
+                <div class="card-title">
+                    💱 Forex Market
+                </div>
+                <div class="card-badge">LIVE</div>
+            </div>
+            <div style="height: 500px; overflow: hidden;">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                    {
+                        "market": "forex",
+                        "showToolbar": false,
+                        "defaultColumn": "overview",
+                        "defaultScreen": "general",
+                        "isTransparent": true,
+                        "locale": "en",
+                        "colorTheme": "dark",
+                        "width": "100%",
+                        "height": 500
+                    }
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Live Market Updates -->
+        <div class="market-card center-card">
+            <div class="card-header">
+                <div class="card-title">
+                    🔥 Trending Now
+                </div>
+                <div class="card-badge">HOT</div>
+            </div>
+            <div class="hotlist-compact">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js" async>
+                    {
+                        "colorTheme": "light",
+                        "dateRange": "1D",
+                        "showChart": true,
+                        "locale": "en",
+                        "largeChartUrl": "",
+                        "isTransparent": true,
+                        "width": "100%",
+                        "height": 500,
+                        "plotLineColorGrowing": "rgba(102, 126, 234, 1)",
+                        "plotLineColorFalling": "rgba(239, 68, 68, 1)",
+                        "gridLineColor": "rgba(42, 46, 57, 0)",
+                        "fontColor": "#a0aec0",
+                        "underLineColor": "rgba(102, 126, 234, 0.3)",
+                        "trendLineColor": "rgba(102, 126, 234, 0.3)",
+                        "activeTickerBackgroundColor": "rgba(102, 126, 234, 0.3)"
+                    }
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <!-- Crypto Card -->
+        <div class="market-card">
+            <div class="card-header">
+                <div class="card-title">
+                    ₿ Crypto Market
+                </div>
+                <div class="card-badge">24/7</div>
+            </div>
+            <div style="height: 500px; overflow: hidden;">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                    {
+                        "defaultColumn": "overview",
+                        "screener_type": "crypto_mkt",
+                        "displayCurrency": "USD",
+                        "colorTheme": "dark",
+                        "isTransparent": true,
+                        "locale": "en",
+                        "width": "100%",
+                        "height": 500
+                    }
+                    </script>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Two Column: Heatmap | Info Cards -->
+    <div class="two-col-grid">
+        
+        <!-- Heatmap -->
+        <div class="heatmap-card">
+            <div class="card-header">
+                <div class="card-title">
+                    🗺️ S&P 500 Heatmap
+                </div>
+                <div class="card-badge">REALTIME</div>
+            </div>
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
+                {
+                    "dataSource": "SPX500",
+                    "blockSize": "market_cap_basic",
+                    "blockColor": "change",
+                    "grouping": "sector",
+                    "locale": "en",
+                    "colorTheme": "light",
+                    "hasTopBar": true,
+                    "isZoomEnabled": true,
+                    "height": 500,
+                    "width": "100%"
+                }
+                </script>
+            </div>
+        </div>
+
+        <!-- Info Cards -->
+        <div class="info-cards">
+            
+            <!-- Market Overview -->
+            <div class="info-card">
+                <div class="card-title">📊 Market Overview</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">S&P 500</div>
+                        <div class="metric-value">4,783.45</div>
+                        <div class="metric-change positive">+0.85% ▲</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">NASDAQ</div>
+                        <div class="metric-value">15,011.35</div>
+                        <div class="metric-change positive">+1.24% ▲</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">DOW JONES</div>
+                        <div class="metric-value">37,248.35</div>
+                        <div class="metric-change negative">-0.23% ▼</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">BTC/USD</div>
+                        <div class="metric-value">$43,250</div>
+                        <div class="metric-change positive">+2.15% ▲</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Market Stats -->
+            <div class="info-card">
+                <div class="card-title">⚡ Market Stats</div>
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-label">Volume</div>
+                        <div class="metric-value">$125B</div>
+                        <div class="metric-change positive">+12.5% ▲</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Volatility</div>
+                        <div class="metric-value">14.2%</div>
+                        <div class="metric-change negative">-1.8% ▼</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Fear & Greed</div>
+                        <div class="metric-value">68</div>
+                        <div class="metric-change" style="color: #f59e0b;">Greed</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-label">Active Traders</div>
+                        <div class="metric-value">2.4M</div>
+                        <div class="metric-change positive">+5.2% ▲</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Advanced Trading Chart -->
+    <div class="chart-card">
+        <div class="card-header">
+            <div class="card-title">
+                📈 Advanced Trading Chart
+            </div>
+            <div class="card-badge">PRO</div>
+        </div>
+        <div class="tradingview-widget-container" style="height: 550px;">
+            <div id="tradingview_chart"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+            <script type="text/javascript">
+                new TradingView.widget({
+                    "width": "100%",
+                    "height": "550",
+                    "symbol": "{{ symbol }}",
+                    "interval": "D",
+                    "timezone": "Etc/UTC",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "en",
+                    "toolbar_bg": "#0f1428",
+                    "enable_publishing": false,
+                    "allow_symbol_change": true,
+                    "container_id": "tradingview_chart",
+                    "backgroundColor": "rgba(15, 20, 40, 0.5)",
+                    "gridColor": "rgba(102, 126, 234, 0.1)",
+                    "studies": [
+                        "MASimple@tv-basicstudies",
+                        "RSI@tv-basicstudies"
+                    ]
+                });
+            </script>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

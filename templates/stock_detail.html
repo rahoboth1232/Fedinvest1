@@ -1,0 +1,827 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ symbol }} — Historical Chart</title>
+    <link rel="icon" href="{% static 'favicon.ico' %}">
+      <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #e5eaf0;
+            color: #1a1d1f;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        /* Header Styles */
+        .header {
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 10px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .symbol-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .symbol-title {
+            font-size: 28px;
+            font-weight: 700;
+            color:#073A6B;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #64748b;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Action Buttons in Header */
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .stock-symbol-badge {
+            background: #f1f5f9;
+            color: #334155;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-buy {
+            background: #10b981;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(16, 185, 129, 0.2);
+        }
+
+        .btn-buy:hover {
+            background: #059669;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-sell {
+            background: #ef4444;
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(239, 68, 68, 0.2);
+        }
+
+        .btn-sell:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 32px;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-around;
+            gap: 24px;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.15);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        /* Controls Panel */
+        .controls-panel {
+            background: #ffffff;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            padding: 15px 15px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        /* .controls-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        } */
+
+        .controls-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #073A6B;
+        }
+
+        .date-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .date-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .date-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            white-space: nowrap;
+        }
+
+        .date-input {
+            padding: 10px 16px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #1a1d1f;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            min-width: 160px;
+        }
+
+        .date-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-load {
+            padding: 10px 28px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%,#073A6B 100%);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-load:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-load:active {
+            transform: translateY(0);
+
+        }
+
+        .container {
+    display: flex;
+    gap: 20px;
+    padding: 32px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+
+        /* Chart Container */
+        .chart-container {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    /* padding: 32px; */
+    box-shadow: 0 1px 3px rgba(51, 49, 158, 3.5);
+   
+}
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f1f5f9;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .chart-title::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background: linear-gradient(135deg, #667eea 0%, #073A6B 100%);
+            border-radius: 2px;
+        }
+
+        .timeframe-selector {
+            display: flex;
+            gap: 6px;
+            background: #f8fafc;
+            padding: 6px;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .timeframe-btn {
+            padding: 8px 16px;
+            border: none;
+            background: transparent;
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .timeframe-btn:hover {
+            color: #0f172a;
+            background: #e2e8f0;
+        }
+
+        .timeframe-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #073A6B 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .chart-box {
+            width: 100%;
+            height: 550px;
+            background: #ffffff;
+            border-radius: 12px;
+            position: relative;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .stats-bar {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .stat-item {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 20px;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .container {
+                padding: 20px;
+            }
+
+            .stats-bar {
+                padding: 20px;
+            }
+
+            .controls-panel {
+                padding: 20px;
+            }
+
+            .date-controls {
+                flex-direction: column;
+                align-items: stretch;
+                width: 100%;
+            }
+
+            .date-group {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
+
+            .date-input {
+                width: 100%;
+            }
+
+            .btn-load {
+                width: 100%;
+            }
+
+            .chart-container {
+                padding: 20px;
+            }
+
+            .chart-box {
+                height: 400px;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+
+            .timeframe-selector {
+                width: 100%;
+                overflow-x: auto;
+            }
+        }
+        .btn-buy{
+            background-color: blue;
+        }
+ .history-table-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .history-table-container h3 {
+        color: #1a1a1a;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+    }
+
+    #history-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border-radius: 8px;
+        overflow: hidden;
+        border: none;
+    }
+
+    #history-table thead {
+        background: linear-gradient(135deg, #667eea 0%,#073A6B 100%);
+    }
+
+    #history-table thead th {
+        padding: 16px 20px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: white;
+        border: none;
+    }
+
+    #history-table tbody tr {
+        border-bottom: 1px solid #e5e7eb;
+        transition: background-color 0.2s ease;
+    }
+
+    #history-table tbody tr:last-child {
+        border-bottom: none;
+    }
+
+    #history-table tbody tr:hover {
+        background-color: #f9fafb;
+    }
+
+    #history-table tbody td {
+        padding: 14px 20px;
+        font-size: 15px;
+        color: #374151;
+        border: none;
+    }
+
+    #history-table tbody td:not(:first-child) {
+        font-family: 'Courier New', monospace;
+        font-weight: 800;
+    }
+
+    .positive {
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .negative {
+        color: #ef4444;
+        font-weight: 600;
+    }
+    </style>
+</head>
+<body>
+
+ <div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'portfolio' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+
+<div class="header">
+    <div class="header-content">
+        <div class="header-left">
+            <div class="symbol-info">
+                <div class="symbol-title">{{ symbol }} {{change_percent}}  ({{ company_name }})</div>
+                <div class="subtitle">Historical Stock Price</div>
+            </div>
+        </div>
+        
+       <div id="stocks-container" class="header-actions"></div>
+
+        
+    </div>
+</div>
+
+<div class="container">
+    <!-- Optional Stats Bar - uncomment if you have this data -->
+    <!--
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-label">Last Price</div>
+            <div class="stat-value">$XXX.XX</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">24h Change</div>
+            <div class="stat-value">+X.XX%</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">24h Volume</div>
+            <div class="stat-value">XXM</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-label">Market Cap</div>
+            <div class="stat-value">$XXB</div>
+        </div>
+    </div>
+    -->
+
+    
+
+    <div class="chart-container">
+        <div class="controls-panel">
+        <div class="controls-header">
+            <div class="controls-title">Date Range Selection</div>
+        </div>
+        <form method="GET">
+            <div class="date-controls">
+                <div class="date-group">
+                    <label>Start Date:</label>
+                    <input type="date" name="start" value="{{ start }}" class="date-input">
+                </div>
+                <div class="date-group">
+                    <label>End Date:</label>
+                    <input type="date" name="end" value="{{ end }}" class="date-input">
+                </div>
+                <button type="submit" class="btn-load">Load Data</button>
+            </div>
+        </form>
+    </div>
+        <div class="chart-header">
+            <div class="chart-title">Candlestick Chart</div>
+           <div class="timeframe-selector">
+    <button class="timeframe-btn" data-timeframe="1d">1D</button>
+    <button class="timeframe-btn" data-timeframe="1w">1W</button>
+    <button class="timeframe-btn" data-timeframe="1m">1M</button>
+    <button class="timeframe-btn" data-timeframe="3m">3M</button>
+     <button class="timeframe-btn" data-timeframe="6m">6M</button>
+    <button class="timeframe-btn active" data-timeframe="custom">Custom</button>
+</div>
+
+        </div>
+
+        <div id="chart" class="chart-box"></div>
+    </div>
+
+   <div class="history-table-container"> 
+
+      <h3>History Table</h3>
+    <table id="history-table" border="1" style="width:100%; margin-top:20px; border-collapse: collapse;">
+        <thead>
+            <tr>
+                
+                <th>Open</th>
+                <th>High</th>
+                <th>Low</th>
+                <th>Close</th>
+                <th>Change</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+   </div>
+
+    
+</div>
+
+
+
+<!-- Load the correct standalone Lightweight Charts library -->
+<script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js" defer></script>
+<script defer>
+const SYMBOL = "{{ symbol }}";
+
+document.addEventListener("DOMContentLoaded", function() {
+    const chartElement = document.getElementById("chart");
+    const chart = LightweightCharts.createChart(chartElement, {
+        width: chartElement.clientWidth,
+        height: chartElement.clientHeight,
+        layout: { background: { color: "#ffffff" }, textColor: "#64748b" },
+        grid: { vertLines: { color: "#f1f5f9" }, horzLines: { color: "#f1f5f9" } },
+        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+        rightPriceScale: { borderColor: "#e5e7eb" },
+        timeScale: { borderColor: "#e5e7eb", timeVisible: true },
+    });
+
+    const candleSeries = chart.addCandlestickSeries({
+
+        
+        upColor: '#10b981',
+        downColor: '#ef4444',
+        borderUpColor: '#10b981',
+        borderDownColor: '#ef4444',
+        wickUpColor: '#10b981',
+        wickDownColor: '#ef4444',
+    });
+    const lineSeries = chart.addLineSeries({ visible: false });
+    const areaSeries = chart.addAreaSeries({ visible: false });
+     const barSeries = chart.addBarSeries({ visible: false });
+
+    // Load initial history
+    let historyy = {{ history|safe }};
+
+    function updateChartAndTable(historyData) {
+        // Convert to chart format
+        const chartData = historyData.map(c => ({
+            time: c.time,
+            open: parseFloat(c.open),
+            high: parseFloat(c.high),
+            low: parseFloat(c.low),
+            close: parseFloat(c.close)
+        }));
+        candleSeries.setData(chartData);
+
+        // Update table
+        const tbody = document.querySelector("#history-table tbody");
+        tbody.innerHTML = ""; // clear previous rows
+        historyData.slice(0, 10).forEach(c => {
+
+            const open = parseFloat(c.open).toFixed(2);
+            const high = parseFloat(c.high).toFixed(2);
+            const low = parseFloat(c.low).toFixed(2);
+            const close = parseFloat(c.close).toFixed(2);
+            const changePercent = ((close - open) / open * 100).toFixed(2);
+            const changeColor = changePercent < 0 ? "red" : "green";
+            const tr = document.createElement("tr");
+            
+            tr.innerHTML = `
+                <td>${open}</td>
+                <td>${high}</td>
+                <td>${low}</td>
+                <td>${close}</td>
+                <td style="color:${changeColor}">${changePercent}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Initial chart & table
+    updateChartAndTable(historyy);
+
+    // Resize chart on window resize
+    window.addEventListener("resize", () => {
+        chart.applyOptions({
+            width: chartElement.clientWidth,
+            height: chartElement.clientHeight
+        });
+    });
+
+    // Timeframe buttons
+    document.querySelectorAll(".timeframe-btn").forEach(btn => {
+        btn.addEventListener("click", async function() {
+            
+            document.querySelectorAll(".timeframe-btn").forEach(b => b.classList.remove("active"));
+            this.classList.add("active");
+
+            const timeframe = this.dataset.timeframe;
+            if(timeframe === "custom") return;
+
+            try {
+                const response = await fetch(`/stock/${SYMBOL}/?timeframe=${timeframe}`, {
+                    headers: { "X-Requested-With": "XMLHttpRequest" }
+                });
+                if (!response.ok) throw new Error("Network response not ok");
+                const data = await response.json();
+              
+  if(data.history) {
+                    historyy = data.history;
+                    updateChartAndTable(historyy);
+                }
+             
+            } catch (err) {
+                console.error("Failed to load timeframe data:", err);
+            }
+        });
+    });
+
+    // Holdings fetch (keep your existing code)
+    const BUY_URL = "{% url 'buy_stock' %}";
+    const SELL_URL_PATTERN = "{% url 'sell_stock' 'SYMBOLPLACEHOLDER' %}";
+
+    fetch('/api/holdings/')
+      .then(res => res.json())
+      .then(data => {
+          const container = document.getElementById('stocks-container');
+          const stock = data.holdings[0];
+          const div = document.createElement('div');
+          div.className = 'header-actions';
+          const sign = SYMBOL;
+          const sellUrl = SELL_URL_PATTERN.replace('SYMBOLPLACEHOLDER', sign);
+          div.innerHTML = `
+              <div class="action-buttons">
+                  <span class="stock-symbol-badge">${sign}</span>
+                  <a class="btn btn-buy" href="${BUY_URL}"><span>Buy</span></a>
+                  <a class="btn btn-sell" href="/sell/${encodeURIComponent(sign)}/"><span>Sell</span></a>
+              </div>
+          `;
+          container.appendChild(div);
+      })
+      .catch(err => console.error(err));
+});
+</script>
+
+</body>
+</html>
