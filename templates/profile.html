@@ -435,7 +435,7 @@
                    <p>{{ profile.masked_ssn }}</p>
 
               
-        {% endif %}
+        {% endif %} 
             </div>
          <div class="form-group">
           {% if profile.date_of_birth %}
@@ -450,6 +450,12 @@
     <p>{{ profile.address}}</p>
 {% endif %}
   </div>
+  </div>
+  <div class="beneficiary-btn" style="display: flex; justify-content: center; width: 100%; margin-top: 30px;">
+    
+  <a href="{% url 'get_beneficiary_profile' beneficiary.id %}" class="btn btn-primary">
+  View Beneficiary Profile
+</a>
   </div>
             </div>
             <div class="status-message" id="statusMsg"></div>
@@ -467,9 +473,7 @@
 
 
   <!-- Example button in profile.html -->
-<a href="{% url 'get_beneficiary_profile' beneficiary.id %}" class="btn btn-primary">
-  View Beneficiary Profile
-</a>
+
 
 <script src="{% static 'js/main.js' %}"></script>
 
