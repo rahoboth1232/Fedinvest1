@@ -1,0 +1,386 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Legal Documents — FED Invest</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+ 
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+
+  <style>
+    /* legal.css - light theme professional trading style */
+:root{
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --muted: #64748b;
+  --accent:#073A6B;
+  --border: #e6eef6;
+  --shadow: 0 6px 18px rgba(2,6,23,0.04);
+  --radius: 12px;
+  font-family: 'Poppins', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+.page{
+  margin: 20px 20px ;
+ 
+}
+
+/* Top bar */
+.topbar{display:flex;align-items:center;   justify-content: center;  margin-top: 10px;  margin-bottom:18px}
+
+
+/* Intro / header */
+.intro-card{background:var(--card);padding:18px;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);margin-bottom:16px}
+.intro-card h2{margin:0 0 6px 0}
+.intro-card p{margin:0;color:var(--muted)}
+
+/* controls */
+.docs-controls{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.docs-controls .count{color:var(--muted)}
+.btnn{background:var(--accent);color:#fff;padding:9px 12px;border-radius:8px;text-decoration:none;font-weight:600;display:inline-block}
+.btn.outline{background:blue;color:var(--accent);border:1px solid var(--accent)}
+
+/* table card */
+.table-card{background:var(--card);padding:10px;border-radius:12px;border:1px solid black;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse}
+th, td{padding:12px 14px;text-align:left;border-bottom:1px solid #f1f5f9}
+th{color:var(--muted);font-weight:600;font-size:13px}
+.doc-title .doc-meta{display:flex;gap:12px;align-items:center}
+.doc-icon{width:46px;height:46px;background:#eef9ff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:20px}
+.title{font-weight:600}
+.muted{color:var(--muted);font-size:13px}
+.actions-col{width:220px}
+.action{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;text-decoration:none;color:#0f172a;background:#f8fafc;border:1px solid #eef2f7;margin-left:8px}
+.action.view{background:#eef9ff;border-color:#e0f2fe;color:#0369a1}
+.action.download{background:#f0fdf4;border-color:#dcfce7;color:#065f46}
+.empty{text-align:center;padding:28px;color:var(--muted)}
+
+/* footer */
+.footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+.search-area {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 3px;
+}
+
+.input-field {
+    width: 480px;
+    background: #f5f8ff;
+    border: 1px solid #d7def0;
+    border-radius: 40px;
+    padding: 6px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.input-field:hover {
+    box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+}
+
+.search-icon {
+    font-size: 20px;
+    color: #3b4b72;
+}
+
+.search-form input {
+    width: 100%;
+    padding: 12px 5px;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 15px;
+    color: #2b3655;
+}
+
+.search-form input::placeholder {
+    color: #9aa6c9;
+}
+
+.search-form button {
+    padding: 10px 20px;
+    border-radius: 30px;
+    border: none;
+    background: #073A6B;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.search-form button:hover {
+    background: #012241;
+    transform: translateY(-2px);
+}
+
+ .custom-alert {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            background: #fff;
+            width: 380px;
+            max-width: 90%;
+            padding: 25px;
+            border-radius: 14px;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            z-index: 9999;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        }
+
+        .custom-alert.show {
+            display: flex;
+            animation: pop .25s ease-out;
+        }
+
+        @keyframes pop {
+            from { transform: translate(-50%, -50%) scale(0.85); opacity: 0; }
+            to   { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .alert-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.40);
+            z-index: 9998;
+            display: none;
+        }
+
+        .alert-overlay.show {
+            display: block;
+        }
+
+        /* Popup OK Button */
+        .alert-ok {
+            margin-top: 15px;
+            padding: 10px 18px;
+            background: #014997;
+            color: #fff;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .alert-ok:hover {
+            background: #0b3b70;
+        }
+
+  </style>
+</head>
+<body>
+  <div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+<div class="page">
+    <header class="topbar">
+      
+<div class="search-area">
+  <form method="get" class="search-form">
+    <div class="input-field">
+      <i class="ri-search-line search-icon"></i>
+      <input 
+        name="q" 
+        value="{{ query }}" 
+        placeholder="Search documents (e.g. 'tax', 'KYC')" 
+      />
+      <button type="submit" title="Search">
+        <span>Search</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+    </header>
+
+    <main>
+      <section class="intro-card">
+        <h2>Legal & Compliance</h2>
+        <p>
+          Important legal documents related to your FED Invest trading account.
+          Download or view these documents. If you need assistance, contact support.
+        </p>
+      </section>
+
+      <section class="docs-list">
+        <div class="docs-controls">
+          <div class="left">
+            <span class="count">{{ docs|length }} documents</span>
+          </div>
+          <div class="right">
+            <a class="btnn" href="{% url 'legal_documents' %}">Refresh</a>
+          </div>
+        </div>
+
+        <div class="table-card">
+          <table>
+            <thead>
+              <tr>
+                <th>Document</th>
+                <th>Date</th>
+                <th>Type</th>
+                <th class="actions-col">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for d in docs %}
+                <tr>
+                  <td class="doc-title">
+                    <div class="doc-meta">
+                      <div class="doc-icon">
+                        <i class="ri-file-paper-line"></i>
+                      </div>
+                      <div>
+                        <div class="title">{{ d.title }}</div>
+                        <div class="muted">{{ d.slug }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="muted">{{ d.date|date:"M d, Y" }}</td>
+                  <td><i class="ri-file-pdf-2-line"></i>{{ d.type }}</td>
+                  <td class="actions-col">
+                  
+                    <button class="action view btn" id="sends">
+                     <i class="ri-mail-send-line"></i>  Send to Email
+                    </button>
+
+
+                   
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="empty">No documents available.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <!-- ===== Success Popup ===== -->
+<div class="alert-overlay"></div>
+<div class="custom-alert">
+    <p id="alertText"></p>
+    <button class="alert-ok" onclick="closeAlert()">OK</button>
+</div>
+
+
+    <footer class="footer">
+      <div>© {{ now.year }} FED Invest</div>
+    </footer>
+  </div>
+  <script>
+document.getElementById("sends").addEventListener("click", function () {
+    showAlert("Request sent successfully 🎉");
+});
+
+function showAlert(msg) {
+    document.getElementById("alertText").innerHTML = msg;
+    document.querySelector(".custom-alert").classList.add("show");
+    document.querySelector(".alert-overlay").classList.add("show");
+}
+
+function closeAlert() {
+    document.querySelector(".custom-alert").classList.remove("show");
+    document.querySelector(".alert-overlay").classList.remove("show");
+    window.location.href = "{% url 'legal_documents' %}";
+}
+</script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

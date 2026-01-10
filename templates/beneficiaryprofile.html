@@ -1,0 +1,121 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FedInvest Beneficiary Profile</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <style>
+    /* Same CSS as profile.html */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    .profile_main { font-family: "Poppins", sans-serif; background: #f8fafc; min-height: 100vh; display: flex; flex-direction: column; }
+    main { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: flex-start; }
+    .profile-wrapper { width: 100%; max-width: 1000px; }
+    .page-header { margin-bottom: 30px; }
+    .page-title { font-size: 28px; font-weight: 700; color: #1e293b; margin-bottom: 8px; }
+    .page-subtitle { font-size: 14px; color: #64748b; }
+    .profile-card { background: #fff; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.06); overflow: hidden; animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+    .profile-header { background: linear-gradient(135deg, #207aad 0%, #4bb3ff 100%); padding: 20px; color: white; text-align:center; position:relative; }
+    .profile-avatar { width:120px; height:120px; border-radius:50%; background: rgba(255,255,255,0.2); border:4px solid rgba(255,255,255,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 20px; font-size:48px; font-weight:600; color:white; }
+    .profile-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .profile-name { font-size:24px; font-weight:600; margin-bottom:5px; }
+    .profile-email { font-size:14px; opacity:0.9; }
+    .profile-body { padding:40px; }
+    .section-title { font-size:18px; font-weight:600; color:#1e293b; margin-bottom:24px; padding-bottom:12px; border-bottom:2px solid #e2e8f0; }
+    .form-grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:24px; margin-bottom:30px; }
+    .form-group { display:flex; flex-direction:column; }
+    label { display:block; margin-bottom:8px; color:#475569; font-size:13px; font-weight:500; text-transform:uppercase; letter-spacing:0.5px; }
+    .form-display { width:100%; padding:14px 16px; border:2px solid #e2e8f0; border-radius:10px; font-size:15px; color:#1e293b; background:#f8fafc; font-weight:500; font-family: "Poppins", sans-serif; }
+    .btn { padding:14px 28px; border:none; border-radius:10px; font-size:15px; font-weight:600; cursor:pointer; transition:all 0.3s ease; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .btn-primary { background:#207aad; color:#fff; }
+    .btn-primary:hover { background:#1a6b8f; }
+    .btn-secondary { background:#f1f5f9; color:#475569; border:2px solid #e2e8f0; }
+    .btn-secondary:hover { background:#e2e8f0; border-color:#cbd5e1; }
+    .status-message { margin-top:20px; padding:14px 20px; border-radius:10px; font-size:14px; font-weight:500; text-align:center; display:none; }
+    .status-success { background:#d1fae5; color:#065f46; border:2px solid #10b981; display:block; }
+    .status-error { background:#fee2e2; color:#991b1b; border:2px solid #ef4444; display:block; }
+    footer { background:#1e293b; color:#cbd5e1; text-align:center; padding:20px; font-size:13px; margin-top:40px; }
+  </style>
+</head>
+<body>
+<div class="profile_main">
+  <main>
+    <div class="profile-wrapper">
+      <div class="page-header">
+        <h1 class="page-title">Beneficiary Profile</h1>
+        <p class="page-subtitle">View and manage beneficiary information</p>
+      </div>
+
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            {% if beneficiary.image %}
+              <img src="{{ beneficiary.image.url }}" alt="Beneficiary Picture">
+            {% else %}
+              {{ beneficiary.full_name|default:"B" | slice:":2" | upper }}
+            {% endif %}
+          </div>
+
+          <h2 class="profile-name">{{ beneficiary.full_name|default:"Beneficiary" }}</h2>
+          <p class="profile-email">{{ beneficiary.email|default:"No email provided" }}</p>
+        </div>
+
+        <div class="profile-body">
+          <h3 class="section-title">Personal Information</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <p>{{ beneficiary.full_name }}</p>
+            </div>
+
+            <div class="form-group">
+              <label>Email Address</label>
+              <p>{{ beneficiary.email|default:"No email provided" }}</p>
+            </div>
+
+            <div class="form-group">
+              <label>Mobile Number</label>
+              <p>{{ beneficiary.masked_mobile }}</p>
+            </div>
+
+             <div class="form-group">
+              {% if beneficiary.ssn %}
+                <label for="ssn">SSN </label> 
+                 
+                   <p>{{ beneficiary.masked_ssn }}</p>
+
+              
+        {% endif %}
+            </div>
+
+            <div class="form-group">
+              {% if beneficiary.date_of_birth %}
+                <label>Date of Birth</label>
+                <p>{{ beneficiary.date_of_birth|date:"M d Y" }}</p>
+              {% endif %}
+            </div>
+
+            <div class="form-group">
+              {% if beneficiary.address %}
+                <label>Address</label>
+                <p>{{ beneficiary.address }}</p>
+              {% endif %}
+            </div>
+          </div>
+
+         
+          <div class="status-message" id="statusMsg"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+  <footer>
+    © 2022 FedInvest Stock Platform — All Rights Reserved
+  </footer>
+</div>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

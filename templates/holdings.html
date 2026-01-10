@@ -1,0 +1,291 @@
+{% load static %}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Holdings</title>
+
+<!-- CSS -->
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+
+.holdings1 {
+    font-family: 'Poppins', sans-serif;
+    background: #fff;
+    color: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+.holdings {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 30px 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+.card {
+    width: 100%;
+    max-width: 900px;
+    background: #5996b9ff;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+    padding: 40px;
+    animation: fadeIn 0.8s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.header1 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(0,0,0,0.2);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+.header h2 { font-size: 1.6rem; font-weight: 700; color: #000; }
+.total { font-size: 1.5rem; font-weight: 700; color: #000; }
+.account-list { list-style: none; }
+.account-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.2);
+    transition: background 0.3s;
+}
+.account-item:hover { background: rgba(255,255,255,0.2); }
+.account-name {
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.account-name svg {
+    width: 18px;
+    height: 18px;
+}
+.amount-input {
+    width: 160px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 1.1rem;
+    border: none;
+    background: transparent;
+    outline: none;
+    border-bottom: 2px solid transparent;
+    transition: border-color 0.2s, background 0.2s;
+}
+.amount-input:focus {
+    border-color: #000;
+    background: rgba(255,255,255,0.3);
+}
+@media(max-width:600px) {
+    .card { padding: 25px; }
+    .header h2 { font-size: 1.3rem; }
+    .total { font-size: 1.2rem; }
+    .amount-input { width: 110px; font-size: 1rem; }
+}
+.account-link{
+  color: #000;
+}
+
+
+
+</style>
+</head>
+
+<body>
+ <div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+
+<div class="holdings1">
+<h1 class="holdings">Holdings</h1>
+
+<div class="card">
+  <div class="header1">
+    <h2>Self-managed accounts</h2>
+    <div class="total" id="total">${{ formatted_total }}</div>
+  </div>
+
+  <ul class="account-list">
+    {% for account in accounts %}
+    <li class="account-item">
+      <span class="account-name">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+             stroke="currentColor" width="18" height="18">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M19 9l-7 7-3-3"/>
+        </svg>
+
+        {% if account.account_type == "Brokerage Account" %}
+            <a href="{% url 'portfolio' %}" class="account-link">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </a>
+
+        {% elif account.account_type == "Gold Holdings" %}
+            <a href="{% url 'gold' %}" class="account-link">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </a>
+
+        {% elif account.account_type == "Checkings Account" %}
+            <a href="{% url 'cash_account_list' %}" class="account-link">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </a>
+
+        {% elif account.account_type == "Cash & Cash Equivalents" %}
+            <a href="{% url 'saving_account' %}"class="account-link">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </a>
+
+            {% elif account.account_type == "Crypto Investement" %}
+            <a href="{% url 'crypto_list' %}"class="account-link">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </a>
+
+        {% else %}
+            <span class="account-link account-disabled">
+                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+            </span>
+        {% endif %}
+      </span>
+
+      <p class="amount-input">
+        {% if account.account_type == "Gold Holdings" %}
+            ${{ formatted_gold_total }}
+        {% elif account.account_type == "Checkings Account" %}
+             $
+        {% if cash_entries %}
+            {{ cash_entries.0.account_balance|intcomma }}
+        {% else %}
+            0
+        {% endif %}
+         {% elif account.account_type == "Cash & Cash Equivalents" %}
+             $
+         {% if saving_entries %}
+                    {{ saving_entries.0.account_balance|intcomma }}
+                {% else %}
+                    0
+                {% endif %}
+            
+        {% else %}
+            ${{ account.amount|intcomma }}
+        {% endif %}
+      </p>
+    </li>
+    {% endfor %}
+  </ul>
+
+</div>
+</div>
+
+<script>
+function checkAccess(accountType) {
+  const type = accountType.trim().toLowerCase();
+  if (type === "brokerage account") {
+    return true;
+  } else {
+    alert("You cannot check it out");
+    return false;
+  }
+}
+</script>
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

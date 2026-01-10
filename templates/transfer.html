@@ -1,0 +1,404 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+<title>Transfer Funds</title>
+
+<style>
+:root {
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --primary: #2563eb;
+    --danger: #dc2626;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e5e7eb;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Inter, system-ui, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.container {
+    max-width: 560px;
+    margin: 50px auto;
+    padding: 0 16px;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0;
+    font-size: 22px;
+}
+
+.header p {
+    margin: 6px 0 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+.card {
+    background: var(--card);
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-top: 14px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+select, input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-size: 14px;
+}
+
+.mode-switch {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.btn {
+    width: 100%;
+    margin-top: 18px;
+    padding: 14px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.note {
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.msg {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.msg.error { color: var(--danger); }
+.msg.success { color: #16a34a; }
+</style>
+
+<script>
+function switchMode(mode) {
+    document.getElementById("internal").classList.remove("active");
+    document.getElementById("withdraw").classList.remove("active");
+
+    document.getElementById("btn-internal").classList.remove("active");
+    document.getElementById("btn-withdraw").classList.remove("active");
+
+    document.getElementById(mode).classList.add("active");
+    document.getElementById("btn-" + mode).classList.add("active");
+
+    document.getElementById("action").value = mode;
+}
+</script>
+
+</head>
+<body>
+    <!-- Withdrawal Confirmation Modal -->
+<div id="withdrawModal" style="
+    display:none;
+    position:fixed;
+    top:0; left:0;
+    width:100%; height:100%;
+    background:rgba(0,0,0,.5);
+    align-items:center;
+    justify-content:center;
+">
+
+    <div style="
+        background:white;
+        padding:24px;
+        border-radius:14px;
+        max-width:360px;
+        width:90%;
+        text-align:center;
+        box-shadow:0 20px 40px rgba(0,0,0,.2);
+    ">
+        <h3 style="margin-top:0;">Withdrawal Requested</h3>
+
+        <p style="color:#475569; font-size:14px;">
+            Your withdrawal request has been sent.<br>
+            The amount will be transferred shortly after approval.
+        </p>
+
+        <button
+            onclick="confirmWithdraw()"
+            style="
+                margin-top:16px;
+                padding:12px 18px;
+                border:none;
+                border-radius:10px;
+                background:#dc2626;
+                color:white;
+                font-weight:600;
+                cursor:pointer;
+            "
+        >
+            OK
+        </button>
+    </div>
+</div>
+
+<div class="top-nav">
+    <div class="top-nav-container">
+        
+        <!-- Left Section -->
+        <div class="nav-left">
+            <div class="logo">
+                <h1 class="logo">
+                    <span class="f">F</span>
+                    <span class="e">e</span>
+                    <span class="d">d</span>
+                    <span class="i">I</span>
+                    <span class="n">n</span>
+                    <span class="v">v</span>
+                    <span class="e2">e</span>
+                    <span class="s">s</span>
+                    <span class="t">t</span>
+                </h1>
+            </div>
+
+            <nav class="main-nav">
+                <a href="{% url 'holdings' %}" class="active erbtn">All accounts</a>
+                <a href="#" class="erbtn">Personal Advisor Services</a>
+            </nav>
+        </div>
+
+        <!-- Right Navigation Icons -->
+        <div class="nav-right">
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="10.5" cy="10.5" r="7.5"></circle>
+                    <line x1="21" y1="21" x2="15.8" y2="15.8"></line>
+                </svg>
+                <span>Search</span>
+            </a>
+
+            <a href="#" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <text x="12" y="16" font-size="12" text-anchor="middle" fill="none" stroke="#000" stroke-width="0.5">?</text>
+                </svg>
+                <span>Support</span>
+            </a>
+
+            <a href="{% url 'messages' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="3" y="5" width="18" height="14" rx="2" ry="2"></rect>
+                    <polyline points="3,7 12,13 21,7"></polyline>
+                </svg>
+                <div class="badge"></div>
+                <span>Messages</span>
+            </a>
+
+            <a href="{% url 'legal_documents' %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="12" height="16" rx="1"></rect>
+                    <line x1="6" y1="8" x2="18" y2="8"></line>
+                </svg>
+                <span>Documents</span>
+            </a>
+
+            <a href="{% url 'get_profile' request.user.id %}" class="nav-item erbtn">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4"></circle>
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6"></path>
+                </svg>
+                <span>Profile</span>
+            </a>
+
+            <a href="{% url 'logout' %}" class="logout-btn">Logout</a>
+        </div>
+
+    </div>
+</div>
+
+<!-- SECONDARY NAV -->
+<div class="secondary-nav">
+    <div class="secondary-nav-container">
+        <nav>
+            <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
+            <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
+            <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
+            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
+            <a class="erbtn" href="{% url 'activity' %}">Activity</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+        </nav>
+    </div>
+</div>
+
+
+<div class="container">
+
+    <div class="header">
+        <h1>Transfer Funds</h1>
+        <p>Move money between accounts or withdraw to your bank</p>
+    </div>
+
+    {% for message in messages %}
+        <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="action" value="internal">
+
+        <!-- COMMON -->
+        <div class="card">
+            <label>From Account</label>
+            <select name="from_account" required>
+                {% for acc in accounts %}
+                    <option value="{{ acc.id }}">
+                        {{ acc.name }} — {{ acc.amount }} - {{acc.account_type}}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <label>Amount</label>
+            <input type="number" step="0.01" name="amount" required>
+        </div>
+
+        <!-- MODE SWITCH -->
+        <div class="mode-switch">
+            <button type="button"
+                    id="btn-internal"
+                    class="mode-btn active"
+                    onclick="switchMode('internal')">
+                Internal Transfer
+            </button>
+            <button type="button"
+                    id="btn-withdraw"
+                    class="mode-btn"
+                    onclick="switchMode('withdraw')">
+                Withdraw to Bank
+            </button>
+        </div>
+
+        <!-- INTERNAL -->
+        <div id="internal" class="card section active">
+            <label>To Account</label>
+            <select name="to_account">
+                {% for acc in to_accounts %}
+                    <option value="{{ acc.id }}">
+                        {{ acc.name }} ({{ acc.account_type }})
+                    </option>
+                {% endfor %}
+            </select>
+
+            <button class="btn btn-primary">
+                Transfer Instantly
+            </button>
+
+            <p class="note">
+                Money moves instantly between your internal accounts.
+            </p>
+        </div>
+
+        <!-- WITHDRAW -->
+        <div id="withdraw" class="card section">
+            <label>Bank Account</label>
+            <select name="bank_account">
+                {% for bank in bank_accounts %}
+                    <option value="{{ bank.id }}">
+                        {{ bank.bank_name }} (****{{ bank.account_number|slice:"-4:" }})
+                    </option>
+                {% endfor %}
+            </select>
+
+          <button
+          class="btn btn-primary"
+    type="button"
+    class="btn btn-danger"
+    onclick="openWithdrawModal()"
+>
+    Request Withdrawal
+</button>
+
+
+            <p class="note">
+                Withdrawals require admin approval and may take time.
+            </p>
+        </div>
+
+    </form>
+</div>
+
+</body>
+</html>
+
+
+<script>
+let withdrawConfirmed = false;
+
+function openWithdrawModal() {
+    document.getElementById("withdrawModal").style.display = "flex";
+}
+
+function confirmWithdraw() {
+    withdrawConfirmed = true;
+    document.getElementById("withdrawModal").style.display = "none";
+    
+  
+}
+</script>
