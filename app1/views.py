@@ -343,32 +343,34 @@ def message_detail(request, pk):
         message.is_read = True
         message.save()
     return render(request, 'message_detail.html', {'message': message})
+from .models import AdminCompose
+@login_required
 def compose_page(request):
+    print("COMPOSE VIEW HIT:", request.method)
+
+   
+    if request.method == "GET":
+        return render(request, "compose.html")
+
     if request.method == "POST":
-        title = request.POST.get("subject")
-        body = request.POST.get("body")
+        title = request.POST.get("subject", "").strip()
+        body = request.POST.get("body", "").strip()
 
-        admin_user = User.objects.filter(is_superuser=True).first()
-        print("ADMIN:", admin_user)
+        if not title or not body:
+            return JsonResponse(
+                {"success": False, "error": "Title and body are required"},
+                status=400
+            )
 
-        msg = Message.objects.create(
-            user=admin_user,
-            sender=request.user,
-            title=title,
-            body=body
-        )
+        AdminCompose.objects.create(
+    user=request.user,
+    subject=title,
+    message=body,
+    source="user"
+)
+        
 
-        print("MESSAGE CREATED:", msg.id)
-
-        Message.objects.create(
-            user=request.user,
-            sender=request.user,
-            title=title,
-            body=body
-        )
-
-        return JsonResponse({"success": True})
-
+        return render(request, "compose.html")
     return render(request, "compose.html")
 from django.http import JsonResponse
 from django.core.cache import cache
@@ -558,6 +560,9 @@ def balance_page(request):
          "saving_entries": saving_entries,
         "saving_total": saving_total,
         "formatted_saving_total": formatted_saving_total,
+        "gold_total": gold_total,
+        "cash_total": cash_total
+        
     })
 
 
@@ -1009,45 +1014,62 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 
 from .models import Account, BankAccount, TransferRequest
+from decimal import Decimal, InvalidOperation
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from .models import Account, BankAccount, TransferRequest
 
+from decimal import Decimal
+from django.contrib import messages
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from .models import Account, BankAccount, TransferRequest
 
 @login_required
 def transfer_view(request):
     user = request.user
 
-    # FROM: User accounts
     accounts = Account.objects.filter(user=user)
+    bank_accounts = BankAccount.objects.filter(user=user, is_active=True)
 
-    # TO: User bank accounts
-    bank_accounts = BankAccount.objects.filter(
-        user=user,
-        is_active=True
-    )
+    # 👇 user transfer history
+    transfer_requests = TransferRequest.objects.filter(
+        user=user
+    ).order_by('-created_at')
+
+    # 👇 container for submitted form data (to show before redirect)
+    submitted_data = None
 
     if request.method == "POST":
         from_id = request.POST.get("from_account")
         bank_id = request.POST.get("bank_account")
         amount_raw = request.POST.get("amount")
 
-        # -------- Amount Validation --------
+        # Store submitted data to display in template if needed
+        submitted_data = {
+            "from_id": from_id,
+            "bank_id": bank_id,
+            "amount_raw": amount_raw
+        }
+
+        # 👇 Validate amount
         try:
             amount = Decimal(amount_raw)
             if amount <= 0:
                 raise ValueError
-        except (InvalidOperation, TypeError, ValueError):
+        except:
             messages.error(request, "Invalid amount")
             return redirect("transfer")
 
-        # -------- Source Account Validation --------
+        # 👇 Validate from_account
         try:
-            from_account = Account.objects.get(
-                id=from_id,
-                user=user
-            )
+            from_account = Account.objects.get(id=from_id, user=user)
         except Account.DoesNotExist:
             messages.error(request, "Invalid source account")
             return redirect("transfer")
 
+        # 👇 Validate bank_account
         try:
             bank_account = BankAccount.objects.get(
                 id=bank_id,
@@ -1058,12 +1080,12 @@ def transfer_view(request):
             messages.error(request, "Invalid bank account")
             return redirect("transfer")
 
-        # -------- Balance Check --------
-        if from_account.balance < amount:
+        # 👇 Check balance
+        if from_account.amount < amount:
             messages.error(request, "Insufficient balance")
             return redirect("transfer")
 
-        # -------- CREATE TRANSFER REQUEST --------
+        # 👇 Create transfer request
         TransferRequest.objects.create(
             user=user,
             from_account=from_account,
@@ -1075,11 +1097,14 @@ def transfer_view(request):
         messages.success(request, "Transfer request sent successfully")
         return redirect("transfer")
 
+    # 👇 render template with both transfer_requests & submitted_data
     return render(
         request,
         "transfer.html",
         {
             "accounts": accounts,
             "bank_accounts": bank_accounts,
+            "transfer_requests": transfer_requests,
+            "submitted_data": submitted_data,  # new
         }
     )

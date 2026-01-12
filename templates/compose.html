@@ -227,6 +227,8 @@ input, textarea {
             <a class="erbtn" href="{% url 'balance' %}">Balances</a>
             <a class="erbtn" href="{% url 'activity' %}">Activity</a>
             <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+                        <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
+
         </nav>
     </div>
 </div>
@@ -264,9 +266,9 @@ input, textarea {
 <div class="alert-overlay"></div>
 <div class="custom-alert">
     <p id="alertText"></p>
-    <button class="alert-ok" onclick="closeAlert()">OK</button>
+    <button class="alert-ok" >OK</button>
 </div>
-
+<!-- 
 <script>
 document.getElementById("composeForm").addEventListener("submit", function (e) {
     e.preventDefault(); 
@@ -284,7 +286,7 @@ function closeAlert() {
     document.querySelector(".alert-overlay").classList.remove("show");
     window.location.href = "{% url 'messages' %}";
 }
-</script>
+</script> -->
 
 </body>
 </html>

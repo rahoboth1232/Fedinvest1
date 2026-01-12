@@ -243,3 +243,68 @@ class BankAccountAdmin(admin.ModelAdmin):
         return "N/A"
 
     masked_account_number.short_description = "Account Number"
+from django.contrib import admin
+from django.db import transaction
+from django.contrib import messages
+from .models import BankAccount, TransferRequest, AccountTransfer
+
+@admin.register(TransferRequest)
+class TransferRequestAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'from_account',
+        'to_bank',
+        'amount',
+        'status',
+        'created_at',
+    )
+
+    list_filter = ('status', 'created_at')
+    actions = ['approve_transfer', 'reject_transfer']
+
+    @admin.action(description="Approve selected transfer requests")
+    def approve_transfer(self, request, queryset):
+        for tr in queryset.filter(status='pending'):
+            account = tr.from_account
+
+            if account.balance < tr.amount:
+                messages.error(
+                    request,
+                    f"Insufficient balance for {tr.user}"
+                )
+                continue
+
+            with transaction.atomic():
+                # deduct money
+                account.balance -= tr.amount
+                account.save()
+
+                # mark approved
+                tr.status = 'approved'
+                tr.save()
+
+        self.message_user(request, "Selected transfers approved successfully")
+
+    @admin.action(description="Reject selected transfer requests")
+    def reject_transfer(self, request, queryset):
+        queryset.filter(status='pending').update(status='rejected')
+        self.message_user(request, "Selected transfers rejected")
+
+
+from .models import AdminCompose
+@admin.register(AdminCompose)
+class AdminComposeAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "subject",
+        "source",
+        "is_read",
+        "created_at",
+    )
+
+    list_filter = ("source", "is_read")
+    search_fields = ("subject", "message", "user__username")
+    readonly_fields = ("created_at",)
+
+    actions = ["mark_as_read"]

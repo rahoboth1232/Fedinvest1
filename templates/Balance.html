@@ -4,54 +4,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cash Account</title>
+<title>Brokerage Account</title>
 
 <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-.balances {
+body {
     font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
     margin: 0;
-    padding: 0;
     min-height: 100vh;
 }
 
-a{
-    text-decoration: none;
-}
+a { text-decoration: none; color: inherit; }
+
 .container {
     max-width: 1200px;
     margin: 40px auto;
     padding: 20px;
 }
 
-.page-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 30px;
-    color: #333;
+/* HEADER */
+.dashboard-header {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    padding: 30px;
+    border-radius: 20px;
+    margin-bottom: 35px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
 }
 
+.dashboard-header h1 {
+    font-size: 34px;
+    margin: 0;
+}
+
+.dashboard-header p {
+    opacity: 0.9;
+    margin-top: 6px;
+}
+
+.market-status {
+    margin-top: 12px;
+    font-weight: 600;
+    color: #10b981;
+}
+
+/* GRID */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: 25px;
 }
 
+/* CARD */
 .stat-card {
-    background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border-radius: 16px;
-    padding: 25px;
-    border: 1px solid rgba(102, 126, 234, 0.2);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15), 0 8px 30px rgba(0, 0, 0, 0.1);
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    padding: 26px;
+    border: 1px solid rgba(102, 126, 234, 0.25);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12);
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
-    cursor: pointer;
 }
 
 .stat-card::before {
@@ -59,52 +76,98 @@ a{
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
     height: 4px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-    transform: scaleX(0);
-    transition: transform 0.3s ease;
+    width: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
 }
 
 .stat-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0px 12px 30px rgba(102, 126, 234, 0.3);
-    border-color: #667eea;
-    background: rgba(255, 255, 255, 1);
-}
-
-.stat-card:hover::before {
-    transform: scaleX(1);
+    box-shadow: 0 15px 35px rgba(102,126,234,0.35);
 }
 
 .stat-label {
-    font-size: 14px;
+    font-size: 13px;
     text-transform: uppercase;
+    letter-spacing: 0.6px;
     font-weight: 600;
     color: #667eea;
-    letter-spacing: 0.5px;
 }
 
 .stat-value {
     font-size: 40px;
     font-weight: 700;
-    margin-top: 10px;
+    margin-top: 12px;
     color: #1e293b;
-    transition: color 0.3s ease;
 }
 
-.stat-card:hover .stat-value {
-    color: #667eea;
+.stat-sub {
+    margin-top: 6px;
+    font-size: 13px;
+    color: #64748b;
 }
 
-.positive { color: #10b981; }
-.negative { color: #ef4444; }
+/* SECTIONS */
+.section {
+    margin-top: 45px;
+}
+
+.section h2 {
+    font-size: 24px;
+    margin-bottom: 18px;
+    color: #1e293b;
+}
+
+/* ACTIVITY */
+.activity-list {
+    background: white;
+    border-radius: 18px;
+    padding: 22px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+}
+
+.activity-list li {
+    list-style: none;
+    padding: 14px 0;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 15px;
+}
+
+.activity-list li:last-child {
+    border-bottom: none;
+}
+
+/* ACTIONS */
+.quick-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 25px;
+}
+
+.btn {
+    padding: 14px 22px;
+    border-radius: 14px;
+    font-weight: 600;
+    background: #667eea;
+    color: white;
+    transition: all 0.25s ease;
+}
+
+.btn.secondary { background: #10b981; }
+.btn.dark { background: #1e293b; }
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
 </style>
 </head>
 
 <body>
 
-<!-- ✅ NAVBAR -->
+
+
 <div class="top-nav">
     <div class="top-nav-container">
         
@@ -188,55 +251,84 @@ a{
             <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
             <a class="erbtn" href="{% url 'balance' %}">Balances</a>
             <a class="erbtn" href="{% url 'activity' %}">Activity</a>
-            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+            <a class="erbtn" href="{% url 'portfolio' %}">Performance</a>
+            <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
+
         </nav>
     </div>
 </div>
 
 
-<div class="balances">
-<!-- ✅ CASH ACCOUNT SECTION -->
+
+
+
 <div class="container">
-    <h1 class="page-title">Brokerage Account(Stocks)</h1>
+
+    <!-- HEADER -->
+    <div class="dashboard-header">
+        <h1>Brokerage Account</h1>
+        <p>Your investment balance and performance overview</p>
+        <div class="market-status">● Market Open</div>
+    </div>
+
+    <!-- BALANCES -->
+    <div class="stats-grid">
+
+        <a href="{% url 'portfolio' %}">
+            <div class="stat-card">
+                <div class="stat-label">Brokerage Balance</div>
+                <div class="stat-value" id="brokerage-balance">$0.00</div>
+                <div class="stat-sub">Total account value</div>
+            </div>
+        </a>
+
+        <a href="{% url 'portfolio' %}">
+            <div class="stat-card">
+                <div class="stat-label">Cash Available</div>
+                <div class="stat-value" id="raw-total">$0.00</div>
+                <div class="stat-sub">Available buying power</div>
+            </div>
+        </a>
+
+        <a href="{% url 'portfolio' %}">
+            <div class="stat-card">
+                <div class="stat-label">Portfolio Invested</div>
+                <div class="stat-value" id="portfolio-total">$0.00</div>
+                <div class="stat-sub">Currently invested in stocks</div>
+            </div>
+        </a>
+{% for account in accounts %}
+<div class="stat-card">
+    <div class="stat-label">{{ account.account_type|default:"Account" }}</div>
+    
+    <div class="stat-value">
+        {% if account.account_type == "Gold Holdings" %}
+            {{ gold_total|floatformat:2 }}
+        {% elif account.account_type == "Cash & Cash Equivalents" %}
+            {{ cash_total|floatformat:2 }}
+        {% else %}
+            {{ account.amount|floatformat:2 }}
+        {% endif %}
+    </div>
+    
+    <div class="stat-sub">Account balance</div>
+</div>
+{% endfor %}
 
     
 
-        <div class="stats-grid">
-    <!-- Brokerage Balance -->
-    <a href="{% url 'portfolio' %}">
-        <div class="stat-card">
-            <div class="stat-label">Brokerage Balance</div>
-            <div class="stat-value" id="brokerage-balance">$0.00</div>
-        </div>
-    </a>
+    <!-- ACTIONS -->
+    
 
-    <a href="{% url 'portfolio' %}">
-        <div class="stat-card">
-            <div class="stat-label">Cash Total</div>
-            <div class="stat-value" id="raw-total">$0.00</div>
-        </div>
-    </a>
-    <!-- Portfolio Total (Invested in stocks) -->
-    <a href="{% url 'portfolio' %}">
-        <div class="stat-card">
-            <div class="stat-label">Portfolio Total (Invested)</div>
-            <div class="stat-value" id="portfolio-total">$0.00</div>
-        </div>
-    </a>
-
-    <!-- Net Portfolio / Cash -->
 </div>
-
-        <!-- <a href="{% url 'portfolio' %}">
-          <div class="stat-card">
-            <div class="stat-label">Cash Account Balance</div>
-            <div class="stat-value" >$0.00</div>
+<div class="section">
+        <h2>Quick Actions</h2>
+        <div class="quick-actions">
+            <a href="{% url 'transfer' %}" class="btn secondary">Deposit Funds</a>
+            <a href="{% url 'portfolio' %}" class="btn dark">View Portfolio</a>
         </div>
-      </a> -->
-
     </div>
-</div>
-</div>
+
 <script>
 function formatMoney(num) {
     if (!num && num !== 0) return "$0.00";
@@ -250,7 +342,6 @@ function loadCashAccount() {
     fetch('/api/holdings/')
         .then(res => res.json())
         .then(data => {
-            // If API returns error
             if (data.error) {
                 document.getElementById("raw-total").textContent = data.error;
                 document.getElementById("brokerage-balance").textContent = "$0.00";
@@ -258,7 +349,6 @@ function loadCashAccount() {
                 return;
             }
 
-            // Update UI with API values
             document.getElementById("brokerage-balance").textContent =
                 formatMoney(data.brokerage_balance);
 
@@ -271,12 +361,8 @@ function loadCashAccount() {
         .catch(err => console.error("API Error:", err));
 }
 
-// Initial load
 loadCashAccount();
-
-// Optional: refresh every 50 seconds
 setInterval(loadCashAccount, 50000);
-
 </script>
 
 <script src="{% static 'js/main.js' %}"></script>

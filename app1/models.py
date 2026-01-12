@@ -384,3 +384,34 @@ class TransferRequest(models.Model):
     def __str__(self):
         return f"{self.user} - {self.amount} ({self.status})"
 
+class AdminCompose(models.Model):
+    SOURCE_CHOICES = (
+        ("user", "User"),
+        ("system", "System"),
+    )
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        help_text="User who triggered this message"
+    )
+
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+
+    source = models.CharField(
+        max_length=10,
+        choices=SOURCE_CHOICES,
+        default="user"
+    )
+
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Admin Message"
+        verbose_name_plural = "Admin Messages"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.subject} - {self.user.username}"
