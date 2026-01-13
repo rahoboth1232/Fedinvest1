@@ -366,7 +366,7 @@
     </div>
 </div>
 
-
+{if % profile %}  
 <div class="profile_main">
   <!-- Main Content -->
   <main>
@@ -379,7 +379,7 @@
       <div class="profile-card">
         <!-- Profile Header -->
         <div class="profile-header">
-         
+        
 
           <div class="profile-avatar">
     {% if user.userprofile.image %}
@@ -461,13 +461,14 @@
   </div>
   {% endif %}
             </div>
+
             <div class="status-message" id="statusMsg"></div>
           </form>
         </div>
       </div>
     </div>
   </main>
-
+{% endif %}
   <footer>
     © 2022 FedInvest Stock Platform — All Rights Reserved
   </footer>
