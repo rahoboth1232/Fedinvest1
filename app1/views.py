@@ -361,15 +361,12 @@ def compose_page(request):
                 {"success": False, "error": "Title and body are required"},
                 status=400
             )
-
         AdminCompose.objects.create(
     user=request.user,
     subject=title,
     message=body,
     source="user"
 )
-        
-
         return render(request, "compose.html")
     return render(request, "compose.html")
 from django.http import JsonResponse
@@ -485,10 +482,6 @@ def buy_stock(request):
     if request.method == "POST":
         symbol = request.POST.get('symbol', '').upper()
         qty = int(request.POST.get('quantity', 0))
-
-        # ================================
-        # Get cached price if available
-        # ================================
         cache_key = f"stock_price_{symbol}"
         price = cache.get(cache_key ,)
 
@@ -1026,6 +1019,12 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Account, BankAccount, TransferRequest
 
+from decimal import Decimal
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+
+
 @login_required
 def transfer_view(request):
     user = request.user
@@ -1033,27 +1032,33 @@ def transfer_view(request):
     accounts = Account.objects.filter(user=user)
     bank_accounts = BankAccount.objects.filter(user=user, is_active=True)
 
-    # 👇 user transfer history
+    gold_holdings = Gold.objects.filter(user=user)
+    gold_total = sum(h.amount for h in gold_holdings)
+
+    cash_entries = CashAccount.objects.filter(user=user).order_by('-date')
+    cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
+
     transfer_requests = TransferRequest.objects.filter(
         user=user
     ).order_by('-created_at')
 
-    # 👇 container for submitted form data (to show before redirect)
     submitted_data = None
 
     if request.method == "POST":
+        action = request.POST.get("action")  # 👈 internal / withdraw
         from_id = request.POST.get("from_account")
+        to_id = request.POST.get("to_account")
         bank_id = request.POST.get("bank_account")
         amount_raw = request.POST.get("amount")
 
-        # Store submitted data to display in template if needed
         submitted_data = {
             "from_id": from_id,
+            "to_id": to_id,
             "bank_id": bank_id,
-            "amount_raw": amount_raw
+            "amount_raw": amount_raw,
         }
 
-        # 👇 Validate amount
+        # ✅ Validate amount
         try:
             amount = Decimal(amount_raw)
             if amount <= 0:
@@ -1062,42 +1067,63 @@ def transfer_view(request):
             messages.error(request, "Invalid amount")
             return redirect("transfer")
 
-        # 👇 Validate from_account
+        # ✅ Validate from_account
         try:
             from_account = Account.objects.get(id=from_id, user=user)
         except Account.DoesNotExist:
             messages.error(request, "Invalid source account")
             return redirect("transfer")
 
-        # 👇 Validate bank_account
-        try:
-            bank_account = BankAccount.objects.get(
-                id=bank_id,
-                user=user,
-                is_active=True
-            )
-        except BankAccount.DoesNotExist:
-            messages.error(request, "Invalid bank account")
-            return redirect("transfer")
-
-        # 👇 Check balance
+        # ✅ Balance check
         if from_account.amount < amount:
             messages.error(request, "Insufficient balance")
             return redirect("transfer")
 
-        # 👇 Create transfer request
-        TransferRequest.objects.create(
-            user=user,
-            from_account=from_account,
-            to_bank=bank_account,
-            amount=amount,
-            status="pending"
-        )
+        # =============================
+        # 🔁 INTERNAL TRANSFER
+        # =============================
+        if action == "internal":
+            try:
+                to_account = Account.objects.get(id=to_id, user=user)
+            except Account.DoesNotExist:
+                messages.error(request, "Invalid destination account")
+                return redirect("transfer")
+
+            TransferRequest.objects.create(
+                user=user,
+                from_account=from_account,
+                to_account=to_account,
+                to_bank=None,          # 🔥 IMPORTANT
+                amount=amount,
+                status="pending"
+            )
+
+        # =============================
+        # 🏦 WITHDRAW TO BANK
+        # =============================
+        elif action == "withdraw":
+            try:
+                bank_account = BankAccount.objects.get(
+                    id=bank_id,
+                    user=user,
+                    is_active=True
+                )
+            except BankAccount.DoesNotExist:
+                messages.error(request, "Invalid bank account")
+                return redirect("transfer")
+
+            TransferRequest.objects.create(
+                user=user,
+                from_account=from_account,
+                to_account=None,       # 🔥 IMPORTANT
+                to_bank=bank_account,
+                amount=amount,
+                status="pending"
+            )
 
         messages.success(request, "Transfer request sent successfully")
         return redirect("transfer")
 
-    # 👇 render template with both transfer_requests & submitted_data
     return render(
         request,
         "transfer.html",
@@ -1105,6 +1131,8 @@ def transfer_view(request):
             "accounts": accounts,
             "bank_accounts": bank_accounts,
             "transfer_requests": transfer_requests,
-            "submitted_data": submitted_data,  # new
+            "submitted_data": submitted_data,
+            "gold_total": gold_total,
+            "cash_total": cash_total,
         }
     )

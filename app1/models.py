@@ -335,27 +335,6 @@ class LegalDocument(models.Model):
     def __str__(self):
         return self.title
 
-class AccountTransfer(models.Model):
-    from_account = models.ForeignKey(
-        Account,
-        on_delete=models.PROTECT,
-        related_name="transfers_out"
-    )
-    to_account = models.ForeignKey(
-        Account,
-        on_delete=models.PROTECT,
-        related_name="transfers_in"
-    )
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
-    created_at = models.DateTimeField(auto_now_add=True)
-    description = models.CharField(max_length=255)
-
-    class Meta:
-        verbose_name = "Account Transfer"
-        verbose_name_plural = "Account Transfers"
-from django.db import models
-from django.contrib.auth.models import User
-
 
 class BankAccount(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -366,6 +345,25 @@ class BankAccount(models.Model):
 
     def __str__(self):
         return f"{self.bank_name} - ****{self.account_number[-4:]}"
+    
+class AccountTransfer(models.Model):
+    from_account = models.ForeignKey(
+        Account,
+        on_delete=models.PROTECT,
+        related_name="account_transfers_out"   # 🔧 CHANGED
+    )
+    to_account = models.ForeignKey(
+        Account,
+        on_delete=models.PROTECT,
+        related_name="account_transfers_in"    # 🔧 CHANGED
+    )
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255)
+
+    class Meta:
+        verbose_name = "Account Transfer"
+        verbose_name_plural = "Account Transfers"
 class TransferRequest(models.Model):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
@@ -374,8 +372,28 @@ class TransferRequest(models.Model):
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    from_account = models.ForeignKey(Account, on_delete=models.CASCADE)
-    to_bank = models.ForeignKey(BankAccount, on_delete=models.CASCADE)
+
+    from_account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name="transfer_requests_out"   # 🔧 CHANGED
+    )
+
+    to_bank = models.ForeignKey(
+        BankAccount,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="bank_transfer_requests"  # 🔧 SAFE ADD
+    )
+
+    to_account = models.ForeignKey(
+        Account,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="transfer_requests_in"    # 🔧 CHANGED
+    )
 
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
@@ -383,6 +401,7 @@ class TransferRequest(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.amount} ({self.status})"
+
 
 class AdminCompose(models.Model):
     SOURCE_CHOICES = (
