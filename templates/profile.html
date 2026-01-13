@@ -452,12 +452,14 @@
 {% endif %}
   </div>
   </div>
+  {% if beneficiary and beneficiary.id %}
   <div class="beneficiary-btn" style="display: flex; justify-content: center; width: 100%; margin-top: 30px;">
     
   <a href="{% url 'get_beneficiary_profile' beneficiary.id %}" class="btn btn-primary">
   View Beneficiary Profile
 </a>
   </div>
+  {% endif %}
             </div>
             <div class="status-message" id="statusMsg"></div>
           </form>
