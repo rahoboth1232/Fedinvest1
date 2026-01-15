@@ -437,7 +437,9 @@ function renderHoldingsTable(data) {
   tbody.innerHTML = '';
 
   const holdings = (data && data.holdings) ? data.holdings : [];
-  let totalDailyChange = 0;
+  // let totalDailyChange = 0;
+  let totalDailyChangePercent = 0;
+
 
   if (holdings.length === 0) {
     const tr = document.createElement('tr');
@@ -468,8 +470,10 @@ function renderHoldingsTable(data) {
     change_percent = live !== 0 ? ((change - live ) / live) * 100 : 0;
 const tr = document.createElement('tr');
 const changeColor = change_price < live ? "red" : "green";
-const stockChangeValue = value * (change / 100);
-totalDailyChange += stockChangeValue;
+// const stockChangeValue = value * (change / 100);
+// totalDailyChange += stockChangeValue;
+totalDailyChangePercent += change_percent;
+
 
 const detailUrl = `/stock/${encodeURIComponent(symbol)}/`;
 
@@ -505,14 +509,28 @@ tbody.appendChild(tr);
 
     
   });
+// const totalDailyChangeEl = document.getElementById("total-daily-change");
 
-const totalColor = totalDailyChange < 0 ? "red" : "green";
+// if (totalDailyChangeEl) {
+//   const totalColor = totalDailyChange < 0 ? "red" : "green";
+//   totalDailyChangeEl.innerHTML = `
+//     <span style="color:${totalColor}">
+//       ${formatMoney(totalDailyChange)}
+//     </span>
+//   `;
+//   }
 
-document.getElementById("total-daily-change").innerHTML = `
-     <span style="color:${totalColor}">
-        ${formatMoney(totalDailyChange)}
+const totalDailyChangeEl = document.getElementById("total-daily-change");
+
+if (totalDailyChangeEl) {
+  const totalColor = totalDailyChangePercent < 0 ? "red" : "green";
+
+  totalDailyChangeEl.innerHTML = `
+    <span style="color:${totalColor}">
+      ${totalDailyChangePercent.toFixed(2)}%
     </span>
-`;
+  `;
+}
 
 
 }
