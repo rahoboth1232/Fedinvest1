@@ -279,7 +279,6 @@
         <nav>
             <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
             <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
-            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
             <a class="erbtn" href="{% url 'activity' %}">Activity</a>
             <a class="erbtn" href="{% url 'performance' %}">Performance</a>
                         <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
@@ -314,41 +313,72 @@
             <button onclick="window.print()">Print Page</button>
         </div>
 
-        <div class="table-container">
-            <table id="activityTable">
-                <thead>
-                    <tr>
-                        <th onclick="sortTable(0)">Date</th>
-                        <th onclick="sortTable(1)">Account Type</th>
-                        <th onclick="sortTable(2)">Account Number</th>
-                        <th onclick="sortTable(3)">Credit</th>
-                        <th onclick="sortTable(4)">Debit</th>
-                        <th onclick="sortTable(5)">Balance</th>
-                    </tr>
-                </thead>
+       <div class="table-container">
+    <table id="activityTable">
+        <thead>
+            <tr>
+                <th onclick="sortTable(0)">Date</th>
+                <th onclick="sortTable(1)">Account Type</th>
+                <th onclick="sortTable(2)">Account Number</th>
+                <th onclick="sortTable(3)">Credit</th>
+                <th onclick="sortTable(4)">Debit</th>
+                <th onclick="sortTable(5)">Balance</th>
+            </tr>
+        </thead>
 
-                <tbody id="tableBody">
-                {% for e in entries %}
-                    <tr>
-                        <td>{{ e.date }}</td>
+        <tbody id="tableBody">
+        {% for e in entries %}
+            <tr>
+                <td>{{ e.date|date:"M d, Y" }}</td>
 
-                        <td>
-                            <span class="type-tag {% if e.entry_type == 'Cash Account' %}cash{% else %}saving{% endif %}">
-                                {{ e.entry_type }}
-                            </span>
-                        </td>
+                <td>
+                    <span class="type-tag 
+                        {% if e.entry_type == 'Checkings Account' %}
+                            cash
+                        {% else %}
+                            saving
+                        {% endif %}
+                    ">
+                        {{ e.entry_type }}
+                    </span>
+                </td>
 
-                        <td><span class="acc-number-tag">{{ e.account_number }}</span></td>
-                        <td>${{ e.credit|intcomma }}</td>
-                        <td>${{ e.debit|intcomma }}</td>
-                        <td>${{ e.balance|intcomma }}</td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="6" class="empty-state">No activity found.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                <td>
+                    <span class="acc-number-tag">
+                        {{ e.account_number }}
+                    </span>
+                </td>
+
+                <td>
+                    {% if e.credit %}
+                        ${{ e.credit|intcomma }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if e.debit %}
+                        ${{ e.debit|intcomma }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    ${{ e.balance|intcomma }}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="6" class="empty-state">
+                    No activity found.
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
 
         <div class="pagination">
             <button onclick="prevPage()">Prev</button>

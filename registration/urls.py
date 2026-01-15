@@ -45,7 +45,7 @@ urlpatterns = [
 
     # ✅ ADD THIS NEW URL FOR GOLD HOLDINGS
     path('gold/', views.gold_view, name='gold'),
-    path("balance/", views.balance_page, name="balance"),
+    # path("balance/", views.balance_page, name="balance"),
 
     path('signin/', views.login_email_view, name='signin'),
     path('signin/password/', views.login_password_view, name='signin_password'),

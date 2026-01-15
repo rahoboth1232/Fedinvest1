@@ -61,15 +61,6 @@ from django.core.exceptions import PermissionDenied
 from .models import Account, AccountTransfer
 
 
-
-
-
-
-# from .views import ActivityLogListView
-# ===============================
-# BASIC AUTHENTICATION VIEWS
-# ===============================
-
 def HomePage(request):
     return render(request, 'home.html')
 
@@ -527,36 +518,36 @@ def buy_stock(request):
 
     return render(request, "buyStock.html")
 
-@login_required
-def balance_page(request):
-    accounts = Account.objects.filter(user=request.user)
-    account_total = sum(a.amount for a in accounts)
-    gold_holdings = Gold.objects.filter(user=request.user)
-    gold_total = sum(h.amount for h in gold_holdings)
-    cash_entries = CashAccount.objects.filter(user=request.user).order_by('-date')
-    cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
-    saving_entries = SavingAccount.objects.filter(
-        user=request.user
-    ).order_by('-date', '-id')
+# @login_required
+# def balance_page(request):
+#     accounts = Account.objects.filter(user=request.user)
+#     account_total = sum(a.amount for a in accounts)
+#     gold_holdings = Gold.objects.filter(user=request.user)
+#     gold_total = sum(h.amount for h in gold_holdings)
+#     cash_entries = CashAccount.objects.filter(user=request.user).order_by('-date')
+#     cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
+#     saving_entries = SavingAccount.objects.filter(
+#         user=request.user
+#     ).order_by('-date', '-id')
 
-    saving_total = saving_entries.first().account_balance if saving_entries.exists() else 0
-    formatted_saving_total = intcomma(saving_total) 
-    # -------------------------------
-    total = account_total + gold_total + cash_total + saving_total
-    formatted_total = intcomma(total)
+#     saving_total = saving_entries.first().account_balance if saving_entries.exists() else 0
+#     formatted_saving_total = intcomma(saving_total) 
+#     # -------------------------------
+#     total = account_total + gold_total + cash_total + saving_total
+#     formatted_total = intcomma(total)
 
    
-    return render(request, 'Balance.html', {
-        'accounts': accounts,
-        'total': total,
-        'formatted_total': formatted_total,
-         "saving_entries": saving_entries,
-        "saving_total": saving_total,
-        "formatted_saving_total": formatted_saving_total,
-        "gold_total": gold_total,
-        "cash_total": cash_total
+#     return render(request, 'Balance.html', {
+#         'accounts': accounts,
+#         'total': total,
+#         'formatted_total': formatted_total,
+#          "saving_entries": saving_entries,
+#         "saving_total": saving_total,
+#         "formatted_saving_total": formatted_saving_total,
+#         "gold_total": gold_total,
+#         "cash_total": cash_total
         
-    })
+#     })
 
 
 
@@ -942,8 +933,12 @@ from django.utils.timezone import localtime
 from django.utils.dateformat import DateFormat
 from django.contrib.humanize.templatetags.humanize import intcomma
 
-def activity_list(request):
+from django.shortcuts import render
+from .models import CashAccount, SavingAccount, Account
 
+
+def activity_list(request):
+    # Get entries
     cash_entries = CashAccount.objects.filter(
         user=request.user
     ).order_by('-date', '-id')
@@ -952,21 +947,23 @@ def activity_list(request):
         user=request.user
     ).order_by('-date', '-id')
 
-    cash_accounts = Account.objects.filter(
-        user=request.user, account_type="Checkings Account"
-    )
+    # Get account numbers
+    checking_account = Account.objects.filter(
+        user=request.user,
+        account_type="Checkings Account"
+    ).first()
 
-    saving_accounts = Account.objects.filter(
-        user=request.user, account_type="Cash & Cash Equivalents"
-    )
+    cash_equivalent_account = Account.objects.filter(
+        user=request.user,
+        account_type="Cash & Cash Equivalents"
+    ).first()
 
-    # Get actual account numbers
-    cash_acc_number = cash_accounts.first().account_number if cash_accounts.exists() else ""
-    saving_acc_number = saving_accounts.first().account_number if saving_accounts.exists() else ""
+    checking_acc_number = checking_account.account_number if checking_account else ""
+    cash_equivalent_acc_number = cash_equivalent_account.account_number if cash_equivalent_account else ""
 
-    # Convert objects → unified entry list
     entries = []
 
+    # Checking Account entries
     for c in cash_entries:
         entries.append({
             "date": c.date,
@@ -974,10 +971,11 @@ def activity_list(request):
             "credit": c.credit,
             "debit": c.debit,
             "balance": c.account_balance,
-            "entry_type": "Cash Account",
-            "account_number": cash_acc_number,
+            "entry_type": "Checkings Account",
+            "account_number": checking_acc_number,
         })
 
+    # Cash & Cash Equivalents entries
     for s in saving_entries:
         entries.append({
             "date": s.date,
@@ -985,16 +983,17 @@ def activity_list(request):
             "credit": s.credit,
             "debit": s.debit,
             "balance": s.account_balance,
-            "entry_type": "Saving Account",
-            "account_number": saving_acc_number,
+            "entry_type": "Cash & Cash Equivalents",
+            "account_number": cash_equivalent_acc_number,
         })
 
     # Sort newest first
     entries = sorted(entries, key=lambda x: x["date"], reverse=True)
 
     return render(request, "activity.html", {
-        "entries": entries,
+        "entries": entries
     })
+
 
 def performancePage(request):
      return render(request, "Performance.html")

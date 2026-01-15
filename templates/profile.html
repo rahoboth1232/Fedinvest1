@@ -358,7 +358,6 @@
         <nav>
             <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
             <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
-            <a class="erbtn" href="{% url 'balance' %}">Balances</a>
             <a class="erbtn" href="{% url 'activity' %}">Activity</a>
             <a class="erbtn" href="{% url 'portfolio' %}">Performance</a>
              <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
@@ -475,29 +474,20 @@
   </div>
 
 
-
-  <!-- Example button in profile.html -->
-
-
 <script src="{% static 'js/main.js' %}"></script>
-
   <script>
     document.getElementById('profileForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      
       const statusMsg = document.getElementById('statusMsg');
       const submitBtn = this.querySelector('button[type="submit"]');
-      
       const formData = {
         full_name: document.getElementById('full_name').value,
         mobile: document.getElementById('mobile').value,
         ssn: document.getElementById('ssn').value || null
       };
-      
       statusMsg.style.display = 'none';
       submitBtn.disabled = true;
       submitBtn.innerHTML = '<span>⏳</span> Saving...';
-      
       try {
         const response = await fetch(this.action, {
           method: 'POST',
