@@ -22,7 +22,6 @@
         * {
             box-sizing: border-box;
         }
-
         body {
             margin: 0;
             font-family: Inter, system-ui, Arial, sans-serif;
@@ -41,19 +40,16 @@
             margin-bottom: 30px;
             text-align: center;
         }
-
         .header h1 {
             margin: 0;
             font-size: 28px;
             font-weight: 700;
         }
-
         .header p {
             margin: 8px 0 0;
             color: var(--muted);
             font-size: 16px;
         }
-
         .card {
             background: var(--card);
             border-radius: 16px;
@@ -61,7 +57,6 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             margin-bottom: 24px;
         }
-
         label {
             display: block;
             margin-top: 16px;
@@ -69,7 +64,6 @@
             font-weight: 600;
             color: var(--text);
         }
-
         select, input {
             width: 100%;
             margin-top: 8px;
@@ -80,18 +74,15 @@
             background: #fff;
             transition: border-color 0.2s ease;
         }
-
         select:focus, input:focus {
             outline: none;
             border-color: var(--primary);
         }
-
         .mode-switch {
             display: flex;
             gap: 12px;
             margin-bottom: 24px;
         }
-
         .mode-btn {
             flex: 1;
             padding: 14px;
@@ -103,21 +94,17 @@
             cursor: pointer;
             transition: all 0.2s ease;
         }
-
         .mode-btn.active {
             background: var(--primary);
             color: white;
             border-color: var(--primary);
         }
-
         .section {
             display: none;
         }
-
         .section.active {
             display: block;
         }
-
         .btn {
             width: 100%;
             margin-top: 20px;
@@ -129,51 +116,41 @@
             cursor: pointer;
             transition: background 0.2s ease;
         }
-
         .btn-primary {
             background: var(--primary);
             color: white;
         }
-
         .btn-primary:hover {
             background: #1d4ed8;
         }
-
         .btn-danger {
             background: var(--danger);
             color: white;
         }
-
         .btn-danger:hover {
             background: #b91c1c;
         }
-
         .note {
             margin-top: 12px;
             font-size: 13px;
             color: var(--muted);
         }
-
         .msg {
             font-size: 14px;
             margin-bottom: 16px;
             padding: 12px;
             border-radius: 8px;
         }
-
         .msg.error {
             color: var(--danger);
             background: #fef2f2;
             border: 1px solid #fecaca;
         }
-
         .msg.success {
             color: var(--success);
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
         }
-
-        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -186,7 +163,6 @@
             justify-content: center;
             z-index: 1000;
         }
-
         .modal-content {
             background: white;
             padding: 24px;
@@ -196,19 +172,16 @@
             text-align: center;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
-
         .modal h3 {
             margin-top: 0;
             font-size: 20px;
             color: var(--text);
         }
-
         .modal p {
             color: var(--muted);
             font-size: 14px;
             margin: 16px 0;
         }
-
         .modal button {
             margin-top: 16px;
             padding: 12px 20px;
@@ -220,12 +193,9 @@
             cursor: pointer;
             transition: background 0.2s ease;
         }
-
         .modal button:hover {
             background: #b91c1c;
         }
-
-        /* Table Styles */
         .table-container {
             background: var(--card);
             border-radius: 16px;
@@ -234,24 +204,20 @@
             margin-top: 40px;
             overflow-x: auto;
         }
-
         .table-container h2 {
             font-size: 24px;
             font-weight: 700;
             margin-bottom: 20px;
             color: var(--text);
         }
-
         .table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
         }
-
         .table thead {
             background: linear-gradient(135deg, #4f46e5 0%, #6d28d9 100%);
         }
-
         .table thead th {
             color: #ffffff;
             text-align: left;
@@ -260,22 +226,17 @@
             text-transform: uppercase;
             font-size: 12px;
         }
-
         .table tbody tr {
             border-bottom: 1px solid var(--border);
             transition: background 0.2s ease;
         }
-
         .table tbody tr:hover {
             background: #f9fafb;
         }
-
         .table tbody td {
             padding: 14px 16px;
             color: var(--text);
         }
-
-        /* Status Badges */
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -284,49 +245,38 @@
             font-weight: 600;
             text-transform: uppercase;
         }
-
         .status-pending {
             background: #fef3c7;
             color: #b45309;
         }
-
         .status-approved {
             background: #d1fae5;
             color: #065f46;
         }
-
         .status-rejected {
             background: #fee2e2;
             color: #991b1b;
         }
-
-        /* Empty State */
         .empty-state {
             text-align: center;
             color: var(--muted);
             padding: 40px 0;
             font-style: italic;
         }
-
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 margin: 20px auto;
                 padding: 0 12px;
             }
-
             .header h1 {
                 font-size: 24px;
             }
-
             .mode-switch {
                 flex-direction: column;
             }
-
             .table thead {
                 display: none;
             }
-
             .table, .table tbody, .table tr, .table td {
                 display: block;
                 width: 100%;
@@ -362,9 +312,7 @@
 <body>
     <div class="top-nav">
     <div class="top-nav-container">
-        
-        <!-- Left Section -->
-        <div class="nav-left">
+                <div class="nav-left">
             <div class="logo">
                 <h1 class="logo">
                     <span class="f">F</span>
@@ -534,8 +482,6 @@
                     Money moves instantly between your internal accounts.
                 </p>
             </div>
-
-            <!-- WITHDRAW -->
             <div id="withdraw" class="card section">
                 <label for="bank_account">Bank Account</label>
                 <select name="bank_account" id="bank_account">
@@ -555,8 +501,6 @@
                 </p>
             </div>
         </form>
-
-        <!-- Withdrawal Requests Table -->
         <div class="table-container">
             <h2>Withdrawal Requests</h2>
             <table class="table">
@@ -613,25 +557,19 @@
             </table>
         </div>
     </div>
-
     <script>
         function switchMode(mode) {
-            // Remove active class from all sections and buttons
             document.getElementById("internal").classList.remove("active");
             document.getElementById("withdraw").classList.remove("active");
             document.getElementById("btn-internal").classList.remove("active");
             document.getElementById("btn-withdraw").classList.remove("active");
-
-            // Add active class to selected mode
             document.getElementById(mode).classList.add("active");
             document.getElementById("btn-" + mode).classList.add("active");
-
-            // Update hidden action field
             document.getElementById("action").value = mode;
         }
 
         function handleWithdraw(event) {
-            event.preventDefault(); // Prevent form submission
+            event.preventDefault(); 
             openWithdrawModal();
         }
 
@@ -641,7 +579,7 @@
 
         function confirmWithdraw() {
             document.getElementById("withdrawModal").style.display = "none";
-            document.getElementById("transferForm").submit(); // Submit the form after confirmation
+            document.getElementById("transferForm").submit(); 
         }
     </script>
 </body>

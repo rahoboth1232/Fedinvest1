@@ -133,12 +133,26 @@ class MessageAdmin(admin.ModelAdmin):
 
     
 
+from django.contrib import admin
+from .models import Stock
+
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
-    list_display = ("company_name", "symbol", "quantity", "user")
+    list_display = (
+        "company_name",
+        "symbol",
+        "quantity",
+        "avg_buy_price",
+        "last_price",
+        "last_price_updated",
+        "user",
+    )
+
     search_fields = ("company_name", "symbol")
     list_filter = ("user",)
+    ordering = ("symbol",)
 
+    readonly_fields = ("last_price", "last_price_updated")
 from django.contrib import admin
 from .models import Gold
 

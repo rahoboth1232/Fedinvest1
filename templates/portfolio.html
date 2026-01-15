@@ -266,8 +266,9 @@
                 <th>Symbol</th>
                  <th>Company Name</th>
                 <th>change</th>
+                <th>change_percent</th>
                 <th>Qty</th>
-                <th>Price</th>
+                <th>Buy_Price</th>
                  <th>Total Price</th>
                 <th>Buy</th>
                 <th>Sell</th>
@@ -445,17 +446,28 @@ function renderHoldingsTable(data) {
     return;
   }
 
+    let symbol 
+    let change 
+    let change_percent
+    let company
+    let qty 
+    let live 
+    let value 
+    let change_price 
+
   holdings.forEach(h => {
 
 
-    const symbol = h.symbol || '—';
-    const change = h.change_percent || '—';
-    const company=h.company_name || '—';
-    const qty = h.quantity || 0;
-    const live = Number(h.live_price) || 0;
-    const value = Number(h.total_value) || (qty * live);
+    symbol = h.symbol || '—';
+    change = h.current_price  || '—';
+    company=h.company_name || '—';
+    qty = h.quantity || 0;
+    live = Number(h.avg_buy_price) || 0;
+    value = Number(h.total_value) || (qty * live);
+    change_price = change - live
+    change_percent = live !== 0 ? ((change - live ) / live) * 100 : 0;
 const tr = document.createElement('tr');
-const changeColor = change < 0 ? "red" : "green";
+const changeColor = change_price < live ? "red" : "green";
 const stockChangeValue = value * (change / 100);
 totalDailyChange += stockChangeValue;
 
@@ -468,7 +480,10 @@ tr.innerHTML = `
     </td>
       <td class="price">${company}</td>
     <td style="color:${changeColor}; font-weight:600;">
-        ${change}%
+        ${change_price}
+    </td>
+    <td style="color:${changeColor}; font-weight:600;">
+        ${change_percent.toFixed(2)}%
     </td>
     <td>${qty}</td>
    

@@ -24,9 +24,6 @@ ALLOWED_HOSTS = [
     "72.62.166.56",
 ]
 
-
-# Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -36,9 +33,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'app1',
     'rest_framework',
-    'django.contrib.humanize',
-
-    
+    'django.contrib.humanize', 
 ]
 
 MIDDLEWARE = [
@@ -53,7 +48,6 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'registration.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',

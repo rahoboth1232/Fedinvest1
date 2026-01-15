@@ -368,125 +368,230 @@ client = finnhub.Client(api_key="d45gnf9r01qsugta9ai0d45gnf9r01qsugta9aig")
 from django.http import JsonResponse
 from django.core.cache import cache
 from decimal import Decimal
+
+from django.http import JsonResponse
+from django.core.cache import cache
+from decimal import Decimal
+
 def get_live_prices(symbols):
+  
     data = {}
+
     for symbol in symbols:
         try:
-            q = client.quote(symbol)  
-            p = client.company_profile2(symbol=symbol) 
+            q = client.quote(symbol)
+
+            if not q or q.get("c") is None:
+                continue
+
+            # Percent change
             if q.get("dp") is not None:
-                percent_change = round(q.get("dp"), 2)
-            elif q.get("c") is not None and q.get("pc") is not None:
+                percent_change = round(q["dp"], 2)
+            elif q.get("pc"):
                 percent_change = round(((q["c"] - q["pc"]) / q["pc"]) * 100, 2)
             else:
                 percent_change = 0
 
             data[symbol] = {
-                "symbol": symbol,
                 "price": q.get("c"),
                 "change": q.get("d"),
-                "percent": percent_change,     
+                "percent": percent_change,
                 "high": q.get("h"),
                 "low": q.get("l"),
                 "open": q.get("o"),
                 "prev_close": q.get("pc"),
-                "name": p.get("name", symbol)
-            }
-        except Exception:
-            data[symbol] = {
-                "symbol": symbol,
-                "price": None,
-                "change": None,
-                "percent": 0,
-                "high": None,
-                "low": None,
-                "open": None,
-                "prev_close": None,
-                "name": symbol
             }
 
+        except Exception as e:
+            # Log if needed; don't crash
+            print(f"[PRICE ERROR] {symbol}: {e}")
+
     return data
+
+from decimal import Decimal
+from datetime import timedelta
+from django.http import JsonResponse
+from django.utils import timezone
+
+
+
 def holdings_api(request):
     user = request.user
     stocks = Stock.objects.filter(user=user)
-    symbols = [s.symbol for s in stocks]
-    cache_key = f"live_prices_{user.id}"
-    prices = cache.get(cache_key)
-    if not prices:
-        prices = get_live_prices(symbols)
-        cache.set(cache_key, prices, 60 * 10)  
+
+    # ✅ ONE controlled update point
+    batch_update_stock_prices(stocks)
+
     holdings = []
-    portfolio_total = Decimal('0')
+    portfolio_total = Decimal("0")
+
     for s in stocks:
-        price_data = prices.get(s.symbol) if prices else None
-        if price_data and price_data.get("price") is not None:
-            live_price = Decimal(str(price_data["price"]))
-            total = live_price * Decimal(s.quantity)
-            company_name= price_data.get("name")
-            portfolio_total += total
-            total_value = str(total)
-            change_percent = float(price_data.get("percent", 0))
+        if s.last_price:
+            total_value = s.last_price * Decimal(s.quantity)
+            portfolio_total += total_value
+
+            change_percent = (
+                ((s.last_price - s.avg_buy_price) / s.avg_buy_price) * 100
+                if s.avg_buy_price > 0 else 0
+            )
         else:
-            live_price = None
             total_value = None
-            change_percent = 0           
+            change_percent = 0
+
         holdings.append({
-            'symbol': s.symbol,
-            'quantity': s.quantity,
-            'company_name': company_name,
-            'live_price': str(live_price) if live_price else None,
-            'total_value': total_value,
-            'change_percent': change_percent,
+            "symbol": s.symbol,
+            "company_name": s.company_name,
+            "quantity": s.quantity,
+            "avg_buy_price": str(s.avg_buy_price),
+            "current_price": str(s.last_price) if s.last_price else None,
+            "total_value": str(total_value) if total_value else None,
+            "change_percent": round(change_percent, 2),
+            "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
+
     account = Account.objects.filter(
         user=user,
         account_type="Brokerage Account"
-    ).order_by('-id').first()
-    brokerage_balance = Decimal(str(account.amount)) if account else Decimal('0')
-    net_portfolio_value = (brokerage_balance - portfolio_total).quantize(Decimal('0.01')) \
-        if portfolio_total > 0 else brokerage_balance.quantize(Decimal('0.01'))
-    if portfolio_total > brokerage_balance:
-        return JsonResponse({
-            'error': 'Account is not sufficient',
-            'holdings': holdings,
-            'portfolio_total': str(portfolio_total),
-            'brokerage_balance': str(brokerage_balance),
-            'raw_total': "0"
-        })
-    final_response = {
-        'holdings': holdings,
-        'raw_total': str(net_portfolio_value),
-        'portfolio_total': str(portfolio_total),
-        'brokerage_balance': str(brokerage_balance),
-    }
-    return JsonResponse(final_response)
+    ).order_by("-id").first()
+
+    brokerage_balance = Decimal(str(account.amount)) if account else Decimal("0")
+
+    net_portfolio_value = (
+        brokerage_balance - portfolio_total
+        if portfolio_total > 0 else brokerage_balance
+    ).quantize(Decimal("0.01"))
+
+    return JsonResponse({
+        "holdings": holdings,
+        "portfolio_total": str(portfolio_total),
+        "brokerage_balance": str(brokerage_balance),
+        "raw_total": str(net_portfolio_value),
+    })
+
+
+from django.core.cache import cache
+
+def can_call_any_price_api(seconds=60):
+   
+    key = "global_price_api_lock"
+
+    if cache.get(key):
+        return False
+
+    cache.set(key, True, seconds)
+    return True
+
+
 def price_api(request, symbol):
+    
     prices = get_live_prices([symbol])
+
+    
     price_data = prices.get(symbol)
+
+    
     if not price_data or price_data.get("price") is None:
         return JsonResponse({"error": "Invalid or unsupported symbol"}, status=400)
+
+    
     return JsonResponse({
         "symbol": symbol,
         "price": float(price_data["price"])
     })
+
+
+def get_company_name(symbol):
+    cache_key = f"company_name_{symbol}"
+    name = cache.get(cache_key)
+
+    if name:
+        return name
+
+    try:
+        profile = client.company_profile2(symbol=symbol)
+        name = profile.get("name", symbol)
+
+        
+        cache.set(cache_key, name, 60 * 60 * 24 * 30)
+
+        return name
+
+    except Exception:
+        return symbol
+
+
+from django.utils import timezone
+from datetime import timedelta
+
+from datetime import timedelta
+from django.utils import timezone
+from decimal import Decimal
+
+from django.utils import timezone
+from datetime import timedelta
+from decimal import Decimal
+
+def batch_update_stock_prices(stocks):
+    symbols_to_update = []
+
+    for s in stocks:
+        if (
+            not s.last_price_updated or
+            timezone.now() - s.last_price_updated > timedelta(hours=1)  # ⏱ 1 HOUR HERE
+        ):
+            symbols_to_update.append(s.symbol)
+
+    # Nothing to update
+    if not symbols_to_update:
+        return
+
+    # Global throttle (already present)
+    if not can_call_any_price_api(seconds=60):
+        return
+
+    prices = get_live_prices(symbols_to_update)
+
+    for s in stocks:
+        price_data = prices.get(s.symbol)
+        if price_data and price_data.get("price"):
+            s.last_price = Decimal(str(price_data["price"]))
+            s.last_price_updated = timezone.now()
+            s.save(update_fields=["last_price", "last_price_updated"])
+
+
+
+from decimal import Decimal
+from django.http import JsonResponse
+from django.shortcuts import redirect
+
+from django.utils import timezone
+
 def buy_stock(request):
     if request.method == "POST":
         symbol = request.POST.get('symbol', '').upper()
         qty = int(request.POST.get('quantity', 0))
-        cache_key = f"stock_price_{symbol}"
-        price = cache.get(cache_key ,)
 
+        if qty <= 0:
+            return JsonResponse({"error": "Invalid quantity"}, status=400)
+
+        # =========================
+        # GET LIVE PRICE
+        # =========================
+        price = get_live_price(symbol)
         if price is None:
-            price = get_live_price(symbol)
-            if price is None:
-                return JsonResponse({"error": "Invalid symbol"}, status=400)
-
-            cache.set(cache_key, price, 60 * 15)
+            return JsonResponse({"error": "Invalid symbol"}, status=400)
 
         price = Decimal(str(price))
         total_cost = price * qty
 
-        # Save transaction
+        # =========================
+        # GET COMPANY NAME (once)
+        # =========================
+        company_name = get_company_name(symbol)
+
+        # =========================
+        # SAVE TRANSACTION
+        # =========================
         Transaction.objects.create(
             user=request.user,
             transaction_type="BUY",
@@ -496,27 +601,39 @@ def buy_stock(request):
             amount=total_cost
         )
 
-        # Update holding
+        # =========================
+        # UPDATE / CREATE STOCK
+        # =========================
         stock, created = Stock.objects.get_or_create(
             user=request.user,
-            symbol=symbol
+            symbol=symbol,
+            defaults={
+                "company_name": company_name,
+                "quantity": 0,
+                "avg_buy_price": Decimal("0"),
+            }
         )
-        stock.quantity = stock.quantity + qty
 
-        if created and not stock.company_name:
-            stock.company_name = symbol
+        # 🔥 UPDATE AVERAGE BUY PRICE
+        total_qty = stock.quantity + qty
+        total_cost_all = (stock.avg_buy_price * stock.quantity) + total_cost
+
+        stock.avg_buy_price = total_cost_all / total_qty
+        stock.quantity = total_qty
+
+        # 🔥 SAVE CURRENT PRICE
+        stock.last_price = price
+        stock.last_price_updated = timezone.now()
 
         stock.save()
 
-        # =============================================
-        # 🚀 CLEAR HOLDINGS PRICE CACHE IMMEDIATELY
-        # =============================================
-        user_price_cache = f"live_prices_{request.user.id}"
-        cache.delete(user_price_cache)
+        # Clear price cache
+        cache.delete(f"live_prices_{request.user.id}")
 
         return redirect("portfolio")
 
     return render(request, "buyStock.html")
+
 
 # @login_required
 # def balance_page(request):
@@ -963,7 +1080,6 @@ def activity_list(request):
 
     entries = []
 
-    # Checking Account entries
     for c in cash_entries:
         entries.append({
             "date": c.date,
@@ -975,7 +1091,6 @@ def activity_list(request):
             "account_number": checking_acc_number,
         })
 
-    # Cash & Cash Equivalents entries
     for s in saving_entries:
         entries.append({
             "date": s.date,
@@ -986,8 +1101,6 @@ def activity_list(request):
             "entry_type": "Cash & Cash Equivalents",
             "account_number": cash_equivalent_acc_number,
         })
-
-    # Sort newest first
     entries = sorted(entries, key=lambda x: x["date"], reverse=True)
 
     return render(request, "activity.html", {
@@ -1027,37 +1140,28 @@ from django.shortcuts import render, redirect
 @login_required
 def transfer_view(request):
     user = request.user
-
     accounts = Account.objects.filter(user=user)
     bank_accounts = BankAccount.objects.filter(user=user, is_active=True)
-
     gold_holdings = Gold.objects.filter(user=user)
     gold_total = sum(h.amount for h in gold_holdings)
-
     cash_entries = CashAccount.objects.filter(user=user).order_by('-date')
     cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
-
     transfer_requests = TransferRequest.objects.filter(
         user=user
     ).order_by('-created_at')
-
     submitted_data = None
-
     if request.method == "POST":
         action = request.POST.get("action")  # 👈 internal / withdraw
         from_id = request.POST.get("from_account")
         to_id = request.POST.get("to_account")
         bank_id = request.POST.get("bank_account")
         amount_raw = request.POST.get("amount")
-
         submitted_data = {
             "from_id": from_id,
             "to_id": to_id,
             "bank_id": bank_id,
             "amount_raw": amount_raw,
         }
-
-        # ✅ Validate amount
         try:
             amount = Decimal(amount_raw)
             if amount <= 0:
@@ -1065,22 +1169,14 @@ def transfer_view(request):
         except:
             messages.error(request, "Invalid amount")
             return redirect("transfer")
-
-        # ✅ Validate from_account
         try:
             from_account = Account.objects.get(id=from_id, user=user)
         except Account.DoesNotExist:
             messages.error(request, "Invalid source account")
             return redirect("transfer")
-
-        # ✅ Balance check
         if from_account.amount < amount:
             messages.error(request, "Insufficient balance")
             return redirect("transfer")
-
-        # =============================
-        # 🔁 INTERNAL TRANSFER
-        # =============================
         if action == "internal":
             try:
                 to_account = Account.objects.get(id=to_id, user=user)
@@ -1092,14 +1188,10 @@ def transfer_view(request):
                 user=user,
                 from_account=from_account,
                 to_account=to_account,
-                to_bank=None,          # 🔥 IMPORTANT
+                to_bank=None,          
                 amount=amount,
                 status="pending"
             )
-
-        # =============================
-        # 🏦 WITHDRAW TO BANK
-        # =============================
         elif action == "withdraw":
             try:
                 bank_account = BankAccount.objects.get(
@@ -1114,7 +1206,7 @@ def transfer_view(request):
             TransferRequest.objects.create(
                 user=user,
                 from_account=from_account,
-                to_account=None,       # 🔥 IMPORTANT
+                to_account=None,      
                 to_bank=bank_account,
                 amount=amount,
                 status="pending"
