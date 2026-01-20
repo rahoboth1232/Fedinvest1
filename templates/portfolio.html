@@ -48,7 +48,7 @@
     .nav a.active, .nav a:hover{background:#eef2ff;color:var(--primary)}
 
     /* Main content */
-    .main{margin-left:240px;padding:24px;}
+    .main{margin-left:215px;padding:10px;}
     .topbar{
       display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:18px;
     }
@@ -72,7 +72,7 @@
     }
 
     .card{
-      background:var(--card); border-radius:12px; padding:16px; box-shadow:0 6px 24px var(--shadow);
+      background:var(--card); border-radius:12px; padding:10px; box-shadow:0 6px 24px var(--shadow);
     }
     #chart-container{
       height: 420px;
@@ -170,7 +170,7 @@
     <nav class="nav">
       <a href="{% url 'dashboard' %}" class="active">Dashboard</a>
       <a href="{% url 'holdings' %}">Holdings</a>
-      <a href="{% url 'activity' %}">Activity</a>
+      <a href="{% url 'transactions' %} ">Activity</a>
       <a href="{% url 'performance' %}">Performance</a>
        <a  href="{% url 'transfer' %}">Transfer</a>
        <a href="{% url 'logout' %}">Logout</a>
@@ -266,7 +266,7 @@
                 <th>Symbol</th>
                  <th>Company Name</th>
                 <th>change</th>
-                <th>change_percent</th>
+                <th>change%</th>
                 <th>Qty</th>
                 <th>Buy_Price</th>
                  <th>Total Price</th>
