@@ -507,7 +507,6 @@ const detailUrl = `/stock/${encodeURIComponent(symbol)}/`;
 tr.innerHTML = `
     <td>
          <a href="javascript:void(0)" class="symbol" title="Click to view chart" data-symbol="${symbol}">
-           <span class="chart-icon">📈</span>
     <span>${symbol}</span>
     <span class="hover-hint">Click to view chart</span>
     
@@ -665,7 +664,7 @@ document.querySelectorAll(".symbol").forEach(el => {
         hoverTimer = setTimeout(() => {
             const hint = el.querySelector(".hover-hint");
             if (hint) hint.style.display = "block";
-        }, 150); // 1.5 sec is humane
+        }, 1500); // 1.5 sec is humane
     });
 
     el.addEventListener("mouseleave", () => {
