@@ -265,10 +265,9 @@
               <tr>
                 <th>Symbol</th>
                  <th>Company Name</th>
-                <th>change</th>
                 <th>change%</th>
                 <th>Qty</th>
-                <th>Buy_Price</th>
+                <th>Price</th>
                  <th>Total Price</th>
                 <th>Buy</th>
                 <th>Sell</th>
@@ -292,7 +291,7 @@
           <div class="value" id="portfolio-total">$0.00</div>
         </div>
 
-        <div class="stat card">
+        <div class="stat card" style="display: none;">
           <div class="label" >Today Change</div>
           <div class="value" id="total-daily-change"> 0%<span id="today-pct" style="font-size:13px;color:var(--muted)"></span></div>
         </div>
@@ -464,10 +463,10 @@ function renderHoldingsTable(data) {
     change = h.current_price  || '—';
     company=h.company_name || '—';
     qty = h.quantity || 0;
-    live = Number(h.avg_buy_price) || 0;
+    live = Number(h.current_price) || 0;
     value = Number(h.total_value) || (qty * live);
     change_price = change - live
-    change_percent = live !== 0 ? ((change - live ) / live) * 100 : 0;
+    change_percents = Number(h.change_percent) || 0
 const tr = document.createElement('tr');
 const changeColor = change_price < live ? "red" : "green";
 // const stockChangeValue = value * (change / 100);
@@ -485,11 +484,9 @@ tr.innerHTML = `
         </a>  
     </td>
       <td class="price">${company}</td>
+  
     <td style="color:${changeColor}; font-weight:600;">
-        $${change_price.toFixed(2)}
-    </td>
-    <td style="color:${changeColor}; font-weight:600;">
-        ${change_percent.toFixed(2)}%
+        ${change_percents.toFixed(2)}%
     </td>
     <td>${qty}</td>
    

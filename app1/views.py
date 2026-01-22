@@ -448,6 +448,7 @@ def holdings_api(request):
             "change_percent": round(change_percent, 2),
             "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
+        print(holdings)
 
     account = Account.objects.filter(
         user=user,
@@ -918,6 +919,7 @@ def legal_documents_view(request):
         "query": query,
     }
     return render(request, "legal_documents.html", context)
+
 import json
 from datetime import datetime
 import yfinance as yf
