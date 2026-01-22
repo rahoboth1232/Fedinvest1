@@ -91,7 +91,34 @@
     thead th{background:#f1f6ff;padding:14px;text-align:left;font-size:12px;color:#374151;text-transform:uppercase;border-bottom:2px solid #e6eefc}
     td{padding:12px;border-bottom:1px solid #f3f4f6;font-size:14px;color:#111827}
     tbody tr:hover{background:#fbfdff}
-    .symbol{font-weight:700;color:var(--primary)}
+    .symbol{font-weight:700;
+      color:var(--primary);
+      text-decoration: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+       position: relative;
+    cursor: pointer;
+    }
+
+.hover-hint {
+    display: none;
+    position: absolute;
+    top: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #111827;
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 10;
+}
+
+
+
     .price{font-weight:600}
     .green{color:var(--success)}
     .red{color:var(--danger)}
@@ -479,8 +506,11 @@ const detailUrl = `/stock/${encodeURIComponent(symbol)}/`;
 
 tr.innerHTML = `
     <td>
-         <a href="javascript:void(0)" class="symbol" data-symbol="${symbol}">
-            ${symbol}
+         <a href="javascript:void(0)" class="symbol" title="Click to view chart" data-symbol="${symbol}">
+           <span class="chart-icon">📈</span>
+    <span>${symbol}</span>
+    <span class="hover-hint">Click to view chart</span>
+    
         </a>  
     </td>
       <td class="price">${company}</td>
@@ -625,6 +655,26 @@ setInterval(function(){
     }
   }
 }, 1000);
+
+
+
+let hoverTimer;
+
+document.querySelectorAll(".symbol").forEach(el => {
+    el.addEventListener("mouseenter", () => {
+        hoverTimer = setTimeout(() => {
+            const hint = el.querySelector(".hover-hint");
+            if (hint) hint.style.display = "block";
+        }, 150); // 1.5 sec is humane
+    });
+
+    el.addEventListener("mouseleave", () => {
+        clearTimeout(hoverTimer);
+        const hint = el.querySelector(".hover-hint");
+        if (hint) hint.style.display = "none";
+    });
+});
+
 
 </script>
 
