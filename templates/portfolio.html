@@ -225,7 +225,7 @@
 }
   </script>
 </div>
-    <div class="grid">
+    <div class="grid" id="stock-chart"> 
       <div>
         <div class="card">       
 <div class="tradingview-widget-container" style="height: 500px;">
@@ -523,6 +523,9 @@ const symbolLink = tr.querySelector(".symbol");
 symbolLink.addEventListener("click", function () {
     const selectedSymbol = this.dataset.symbol;
     loadChart(selectedSymbol);
+     document
+        .getElementById("stock-chart")
+        .scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
 
