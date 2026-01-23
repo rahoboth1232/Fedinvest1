@@ -430,7 +430,7 @@
             {% if acc.account_type == "Gold Holdings" %}
                 {{ gold_total }}
             {% elif acc.account_type == "Cash & Cash Equivalents" %}
-                {{ cash_total }}
+                {{ saving_total }}
             {% else %}
                 {{ acc.amount }}
             {% endif %}
@@ -465,7 +465,7 @@
             {% if acc.account_type == "Gold Holdings" %}
                 {{ gold_total }}
             {% elif acc.account_type == "Cash & Cash Equivalents" %}
-                {{ cash_total }}
+                {{ saving_total }}
             {% else %}
                 {{ acc.amount }}
             {% endif %}

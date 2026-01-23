@@ -1151,6 +1151,14 @@ def transfer_view(request):
     transfer_requests = TransferRequest.objects.filter(
         user=user
     ).order_by('-created_at')
+
+    saving_entries = SavingAccount.objects.filter(
+        user=request.user
+    ).order_by('-date', '-id')
+
+    saving_total = saving_entries.first().account_balance if saving_entries.exists() else 0
+    formatted_saving_total = intcomma(saving_total)
+
     submitted_data = None
     if request.method == "POST":
         action = request.POST.get("action")  # 👈 internal / withdraw
@@ -1227,5 +1235,8 @@ def transfer_view(request):
             "submitted_data": submitted_data,
             "gold_total": gold_total,
             "cash_total": cash_total,
+             "saving_entries": saving_entries,
+        "saving_total": saving_total,
+        "formatted_saving_total": formatted_saving_total,
         }
     )
