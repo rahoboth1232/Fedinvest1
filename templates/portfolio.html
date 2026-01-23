@@ -495,7 +495,7 @@ function renderHoldingsTable(data) {
     change_price = change - live
     change_percents = Number(h.change_percent) || 0
 const tr = document.createElement('tr');
-const changeColor = change_price < live ? "red" : "green";
+const changeColor = change_percents < 0  ? "red" : "green";
 // const stockChangeValue = value * (change / 100);
 // totalDailyChange += stockChangeValue;
 totalDailyChangePercent += change_percent;
