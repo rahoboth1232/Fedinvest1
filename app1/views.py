@@ -1,65 +1,51 @@
-from django.shortcuts import render, HttpResponse, redirect
-from django.contrib.auth.models import User
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse, JsonResponse
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, get_object_or_404
-from rest_framework import generics, permissions
-from .models import UserProfile   # make sure Holding is imported
-from .models import Account
-from.serializers import UserProfileSerializer
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.decorators import api_view
-from .models import Transaction
-from django.contrib import messages
-from django.contrib.humanize.templatetags.humanize import intcomma
-from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
-from django.contrib.auth.decorators import login_required
-
-from django.views.decorators.csrf import csrf_exempt  # not used here, we use CSRF token normally
-
-import random
-from .models import Message
-from django.http import JsonResponse
-from decimal import Decimal
-from .models import Stock
-from .utils.prices import get_live_prices
-
-from .models import Stock, Transaction
-from .models import Stock, Transaction, Account
-from .utils.prices import get_live_price
-from django.http import JsonResponse
-from django.shortcuts import render
-from .models import Gold
-from django.contrib.humanize.templatetags.humanize import intcomma
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import Account   # Make sure Account model is imported
-from django.shortcuts import render
-from .models import CashAccount
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from .models import CashAccount  
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-from django.shortcuts import render
-from .models import CashAccount
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-
-from .models import CashAccount
-   
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.http import JsonResponse
-from decimal import Decimal
-from django.db import transaction
 from django.core.exceptions import PermissionDenied
-from .models import Account, AccountTransfer
-
+from django.db import transaction, models
+from django.db.models import F
+from django.utils import timezone
+from django.utils.timezone import localtime
+from django.utils.dateformat import DateFormat
+from django.contrib.humanize.templatetags.humanize import intcomma
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from decimal import Decimal, InvalidOperation
+from datetime import datetime, timedelta
+from itertools import chain
+import json
+import random
+import yfinance as yf
+import finnhub
+from .models import (
+    UserProfile,
+    BeneficiaryProfile,
+    Account,
+    AccountTransfer,
+    CashAccount,
+    SavingAccount,
+    BankAccount,
+    TransferRequest,
+    Transaction,
+    Stock,
+    Gold,
+    Crypto,
+    Message,
+    AdminCompose,
+    LegalDocument,
+)
+from .serializers import (
+    UserProfileSerializer,
+    BeneficiaryProfileSerializer,
+)
+from .utils.prices import get_live_price, get_live_prices
 
 def HomePage(request):
     return render(request, 'home.html')
@@ -193,8 +179,6 @@ def DashboardPage(request):
         "formatted_saving_total": formatted_saving_total,
     })
 
-# HOLDINGS PAGE (from model)
-# ===============================
 @login_required(login_url='login')
 def holdings_view(request):
     accounts = Account.objects.filter(user=request.user)
@@ -234,8 +218,7 @@ def holdings_view(request):
         "formatted_saving_total": formatted_saving_total,
     })
     
-from django.utils import timezone
-from datetime import timedelta
+
    
 @login_required(login_url='login')
 
@@ -270,10 +253,7 @@ def transactions(request):
         'transactions': user_transactions
     })
 
-# ===============================
-# API VIEWS (DRF)
-# ===============================
-from .models import UserProfile, BeneficiaryProfile
+
 
 def get_profile(request, user_id):
     profile = get_object_or_404(UserProfile, user_id=user_id)
@@ -295,13 +275,7 @@ def update_profile(request, user_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import BeneficiaryProfile
-from .serializers import BeneficiaryProfileSerializer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.decorators import login_required
+
 
 @login_required
 def get_beneficiary_profile(request, beneficiary_id):
@@ -334,7 +308,7 @@ def message_detail(request, pk):
         message.is_read = True
         message.save()
     return render(request, 'message_detail.html', {'message': message})
-from .models import AdminCompose
+
 @login_required
 def compose_page(request):
     print("COMPOSE VIEW HIT:", request.method)
@@ -360,18 +334,9 @@ def compose_page(request):
 )
         return render(request, "compose.html")
     return render(request, "compose.html")
-from django.http import JsonResponse
-from django.core.cache import cache
-from decimal import Decimal
-import finnhub
-client = finnhub.Client(api_key="d45gnf9r01qsugta9ai0d45gnf9r01qsugta9aig")  
-from django.http import JsonResponse
-from django.core.cache import cache
-from decimal import Decimal
 
-from django.http import JsonResponse
-from django.core.cache import cache
-from decimal import Decimal
+client = finnhub.Client(api_key="d45gnf9r01qsugta9ai0d45gnf9r01qsugta9aig")  
+
 
 def get_live_prices(symbols):
   
@@ -408,10 +373,6 @@ def get_live_prices(symbols):
 
     return data
 
-from decimal import Decimal
-from datetime import timedelta
-from django.http import JsonResponse
-from django.utils import timezone
 
 
 
@@ -471,7 +432,7 @@ def holdings_api(request):
     })
 
 
-from django.core.cache import cache
+
 
 def can_call_any_price_api(seconds=60):
    
@@ -522,16 +483,7 @@ def get_company_name(symbol):
         return symbol
 
 
-from django.utils import timezone
-from datetime import timedelta
 
-from datetime import timedelta
-from django.utils import timezone
-from decimal import Decimal
-
-from django.utils import timezone
-from datetime import timedelta
-from decimal import Decimal
 
 def batch_update_stock_prices(stocks):
     symbols_to_update = []
@@ -564,11 +516,7 @@ def batch_update_stock_prices(stocks):
 
 
 
-from decimal import Decimal
-from django.http import JsonResponse
-from django.shortcuts import redirect
 
-from django.utils import timezone
 
 def buy_stock(request):
     if request.method == "POST":
@@ -639,43 +587,7 @@ def buy_stock(request):
     return render(request, "buyStock.html")
 
 
-# @login_required
-# def balance_page(request):
-#     accounts = Account.objects.filter(user=request.user)
-#     account_total = sum(a.amount for a in accounts)
-#     gold_holdings = Gold.objects.filter(user=request.user)
-#     gold_total = sum(h.amount for h in gold_holdings)
-#     cash_entries = CashAccount.objects.filter(user=request.user).order_by('-date')
-#     cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
-#     saving_entries = SavingAccount.objects.filter(
-#         user=request.user
-#     ).order_by('-date', '-id')
-
-#     saving_total = saving_entries.first().account_balance if saving_entries.exists() else 0
-#     formatted_saving_total = intcomma(saving_total) 
-#     # -------------------------------
-#     total = account_total + gold_total + cash_total + saving_total
-#     formatted_total = intcomma(total)
-
-   
-#     return render(request, 'Balance.html', {
-#         'accounts': accounts,
-#         'total': total,
-#         'formatted_total': formatted_total,
-#          "saving_entries": saving_entries,
-#         "saving_total": saving_total,
-#         "formatted_saving_total": formatted_saving_total,
-#         "gold_total": gold_total,
-#         "cash_total": cash_total
-        
-#     })
-
-
-
-
 def portfolio(request):
-  
-    
     return render(request, "portfolio.html")
 
 def sell_stock(request, symbol):
@@ -799,8 +711,7 @@ def cash_account_list(request):
         "formatted_cash_total": formatted_cash_total,
     })
 
-from .models import SavingAccount
-from django.contrib.humanize.templatetags.humanize import intcomma
+
 
 @login_required
 def saving_account_list(request):
@@ -819,8 +730,7 @@ def saving_account_list(request):
          "saving_accounts": saving_accounts,
     })
 
-from django.shortcuts import render
-from .models import Crypto
+
 
 def crypto_list(request):
     cryptos = Crypto.objects.all().order_by("-date")
@@ -835,81 +745,7 @@ def crypto_list(request):
 def calendarPage(request):
      return render(request, "calendar.html")
 
-from django.shortcuts import render
-from django.utils import timezone
 
-# def legal_documents(request):
-#     """
-#     Renders the Legal Documents page.
-#     No DB changes. Documents are defined here (can be moved to settings or DB later).
-#     """
-
-#     # Example documents list - update file_url to your real static/media file paths
-#     docs = [
-#         {
-#             "title": "Terms & Conditions",
-#             "slug": "terms-conditions",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/terms-and-conditions.pdf",
-#             "type": "PDF"
-#         },
-#         {
-#             "title": "Risk Disclosure Document",
-#             "slug": "risk-disclosure",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/risk-disclosure.pdf",
-#             "type": "PDF"
-#         },
-#         {
-#             "title": "Privacy Policy",
-#             "slug": "privacy-policy",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/privacy-policy.pdf",
-#             "type": "PDF"
-#         },
-#         {
-#             "title": "Investor Rights & Responsibilities",
-#             "slug": "investor-rights",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/investor-rights.pdf",
-#             "type": "PDF"
-#         },
-#         {
-#             "title": "Anti-Money Laundering Policy",
-#             "slug": "aml-policy",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/aml-policy.pdf",
-#             "type": "PDF"
-#         },
-#         {
-#             "title": "Trading Guidelines (F&O, Intraday)",
-#             "slug": "trading-guidelines",
-#             "date": timezone.datetime(2025, 1, 1).date(),
-#             "file_url": "/static/docs/trading-guidelines.pdf",
-#             "type": "PDF"
-#         },
-#         # Example: uploaded image file path from your session (dev will map to URL)
-#         {
-#             "title": "Admin Panel Screenshot (example file)",
-#             "slug": "admin-screenshot",
-#             "date": timezone.datetime(2025, 11, 20).date(),
-#             "file_url": "/mnt/data/6e48a730-5038-48d5-88c6-6abf624479b6.png",
-#             "type": "PNG"
-#         },
-#     ]
-
-#     query = request.GET.get("q", "").strip()
-#     if query:
-#         docs = [d for d in docs if query.lower() in d["title"].lower()]
-
-#     context = {
-#         "docs": docs,
-#         "query": query,
-#     }
-#     return render(request, "legal_documents.html", context)
-
-from django.shortcuts import render
-from .models import LegalDocument
 
 def legal_documents_view(request):
     query = request.GET.get("q", "").strip()
@@ -923,20 +759,6 @@ def legal_documents_view(request):
     }
     return render(request, "legal_documents.html", context)
 
-import json
-from datetime import datetime
-import yfinance as yf
-from django.shortcuts import render
-from django.shortcuts import render
-from datetime import datetime, timedelta
-import yfinance as yf
-import json
-from datetime import datetime, timedelta
-import yfinance as yf
-from django.shortcuts import render
-import json
-
-from django.http import JsonResponse
 
 def stock_detail(request, symbol):
     ticker = yf.Ticker(symbol)
@@ -1020,43 +842,6 @@ def stock_detail(request, symbol):
     return render(request, "stock_detail.html", context)
 
 
-from django.utils import timezone
-from django.shortcuts import render
-from django.db.models import F
-from django.db import models
-from django.shortcuts import render
-from django.contrib.humanize.templatetags.humanize import intcomma
-
-from itertools import chain
-from django.utils.timezone import localtime
-
-# def activity_list(request):
-#     cash_entries = CashAccount.objects.filter(user=request.user)
-#     saving_entries = SavingAccount.objects.filter(user=request.user)
-
-#     # Add a type label to each object so template can identify
-#     for c in cash_entries:
-#         c.entry_type = "Checking Account"
-
-#     for s in saving_entries:
-#         s.entry_type = "Cash & Cash Equivalent Account"
-
-#     # Combine & sort by date desc
-#     combined_entries = sorted(
-#         chain(cash_entries, saving_entries),
-#         key=lambda x: (x.date, x.id),
-#         reverse=True
-#     )
-
-#     return render(request, "activity.html", {
-#         "entries": combined_entries,
-#     })
-
-from django.utils.dateformat import DateFormat
-from django.contrib.humanize.templatetags.humanize import intcomma
-
-from django.shortcuts import render
-from .models import CashAccount, SavingAccount, Account
 
 
 def activity_list(request):
@@ -1116,30 +901,6 @@ def activity_list(request):
 def performancePage(request):
      return render(request, "Performance.html")
 
-
-from decimal import Decimal, InvalidOperation
-
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-
-from .models import Account, BankAccount, TransferRequest
-from decimal import Decimal, InvalidOperation
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
-from .models import Account, BankAccount, TransferRequest
-
-from decimal import Decimal
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Account, BankAccount, TransferRequest
-
-from decimal import Decimal
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.shortcuts import render, redirect
 
 
 @login_required
