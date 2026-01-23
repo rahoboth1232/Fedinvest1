@@ -420,23 +420,24 @@ def holdings_api(request):
     stocks = Stock.objects.filter(user=user)
 
     # ✅ ONE controlled update point
-    batch_update_stock_prices(stocks)
+    live_prices = batch_update_stock_prices(stocks)
 
     holdings = []
     portfolio_total = Decimal("0")
 
     for s in stocks:
-        if s.last_price:
-            total_value = s.last_price * Decimal(s.quantity)
-            portfolio_total += total_value
+        live = live_prices.get(s.symbol, {})
 
-            change_percent = (
-                ((s.last_price - s.avg_buy_price) / s.avg_buy_price) * 100
-                if s.avg_buy_price > 0 else 0
-            )
+        last_price = s.last_price
+        percent = live.get("percent")
+
+        if last_price:
+            total_value = last_price * Decimal(s.quantity)
+            portfolio_total += total_value
+      
         else:
             total_value = None
-            change_percent = 0
+            
 
         holdings.append({
             "symbol": s.symbol,
@@ -445,7 +446,7 @@ def holdings_api(request):
             "avg_buy_price": str(s.avg_buy_price),
             "current_price": str(s.last_price) if s.last_price else None,
             "total_value": str(total_value) if total_value else None,
-            "change_percent": round(change_percent, 2),
+            "change_percent": percent,
             "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
         print(holdings)
@@ -538,7 +539,7 @@ def batch_update_stock_prices(stocks):
     for s in stocks:
         if (
             not s.last_price_updated or
-            timezone.now() - s.last_price_updated > timedelta(hours=1)  # ⏱ 1 HOUR HERE
+            timezone.now() - s.last_price_updated > timedelta(minutes=1)  # ⏱ 1 HOUR HERE
         ):
             symbols_to_update.append(s.symbol)
 
@@ -558,6 +559,8 @@ def batch_update_stock_prices(stocks):
             s.last_price = Decimal(str(price_data["price"]))
             s.last_price_updated = timezone.now()
             s.save(update_fields=["last_price", "last_price_updated"])
+
+    return prices        
 
 
 
