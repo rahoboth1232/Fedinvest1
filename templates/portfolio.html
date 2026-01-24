@@ -96,10 +96,7 @@
       text-decoration: none;
       display: flex;
       justify-content: center;
-      align-items: center;
-      gap: 5px;
-       position: relative;
-    cursor: pointer;
+      flex-direction: column;
     }
 
 .hover-hint {
@@ -146,7 +143,6 @@
   width: 500px;
 
  
-  
 }
 #live-section {
   width: 100%;
@@ -156,6 +152,12 @@
   padding: 10px;
   position: relative;
 }
+
+.stxt{
+    font-size: x-small;
+  }
+ 
+  
 
 .ticker-track {
   display: inline-block;
@@ -509,6 +511,7 @@ tr.innerHTML = `
          <a href="javascript:void(0)" class="symbol" title="Click to view chart" data-symbol="${symbol}">
     <span>${symbol}</span>
     <span class="hover-hint">Click to view chart</span>
+    <span class="stxt">view</span>
     
         </a>  
     </td>
@@ -561,14 +564,7 @@ symbolLink.addEventListener("click", function () {
 tbody.appendChild(tr);
 
     
-// ===========================
-// LIVE TICKER (SEAMLESS)
-// ===========================
-// ===========================
-// LIVE TICKER (SEAMLESS LOOP)
-// ===========================
 
-    
   });
 // const totalDailyChangeEl = document.getElementById("total-daily-change");
 
