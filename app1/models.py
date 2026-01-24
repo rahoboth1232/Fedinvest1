@@ -138,6 +138,8 @@ class TransactionManager(models.Manager):
         )
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+
 
 class Transaction(models.Model):
     TRANSACTION_TYPES = [
@@ -147,17 +149,17 @@ class Transaction(models.Model):
         ('WITHDRAW', 'Withdraw'),
         ('DIVIDEND', 'Dividend'),
     ]
-
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     stock_symbol = models.CharField(max_length=10, blank=True, null=True)
     quantity = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     price_per_share = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     amount = models.DecimalField(max_digits=14, decimal_places=2, blank=True, null=True)
-    date = models.DateTimeField(auto_now_add=True)  # creation timestamp
+
+    date = models.DateTimeField(default=timezone.now, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
 
-    objects = TransactionManager()  # your custom manager
+    objects = TransactionManager()  
 
     class Meta:
         ordering = ['-date']
@@ -196,6 +198,13 @@ class Stock(models.Model):
     symbol = models.CharField(max_length=10)
     quantity = models.PositiveIntegerField(default=0)
     account = models.ForeignKey('Account', on_delete=models.CASCADE, null=True, blank=True)
+    change_percent = models.DecimalField(
+    max_digits=7,
+    decimal_places=2,
+    null=True,
+    blank=True
+)
+
 
     # ✅ NEW FIELDS (ADD THESE)
     avg_buy_price = models.DecimalField(

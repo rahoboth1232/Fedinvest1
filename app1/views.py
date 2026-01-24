@@ -243,7 +243,7 @@ def transactions(request):
         )
         return redirect('transactions')
     
-    cutoff_time = timezone.now() - timedelta(minutes=2)
+    cutoff_time = timezone.now() - timedelta(seconds=30)
     user_transactions = Transaction.objects.filter(
         user=request.user,
         date__lte=cutoff_time   
@@ -375,7 +375,6 @@ def get_live_prices(symbols):
 
 
 
-
 def holdings_api(request):
     user = request.user
     stocks = Stock.objects.filter(user=user)
@@ -383,14 +382,21 @@ def holdings_api(request):
     # ✅ ONE controlled update point
     live_prices = batch_update_stock_prices(stocks)
 
+
+    if live_prices is None:
+        
+        live_prices = {}
+
+    
+
     holdings = []
     portfolio_total = Decimal("0")
 
     for s in stocks:
-        live = live_prices.get(s.symbol, {})
+        live = live_prices.get(s.symbol, {}) or {}
 
         last_price = s.last_price
-        percent = live.get("percent")
+        percent = live.get("percent") or s.change_percent
 
         if last_price:
             total_value = last_price * Decimal(s.quantity)
@@ -410,7 +416,7 @@ def holdings_api(request):
             "change_percent": percent,
             "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
-        print(holdings)
+        
 
     account = Account.objects.filter(
         user=user,
@@ -418,19 +424,22 @@ def holdings_api(request):
     ).order_by("-id").first()
 
     brokerage_balance = Decimal(str(account.amount)) if account else Decimal("0")
+    
+
 
     net_portfolio_value = (
         brokerage_balance - portfolio_total
         if portfolio_total > 0 else brokerage_balance
     ).quantize(Decimal("0.01"))
-
+    
+    
+    
     return JsonResponse({
         "holdings": holdings,
         "portfolio_total": str(portfolio_total),
         "brokerage_balance": str(brokerage_balance),
         "raw_total": str(net_portfolio_value),
     })
-
 
 
 
@@ -484,66 +493,88 @@ def get_company_name(symbol):
 
 
 
+CACHE_TTL = 3600  # 5 minutes
+
 
 def batch_update_stock_prices(stocks):
+    print("batch_update_stock_prices called")
+   
+
+    cached_prices = {}
     symbols_to_update = []
 
+    # Step 1: Load cache & decide what needs fetching
     for s in stocks:
-        if (
-            not s.last_price_updated or
-            timezone.now() - s.last_price_updated > timedelta(minutes=1)  # ⏱ 1 HOUR HERE
-        ):
+        cached = cache.get(f"stock_live_{s.symbol}")
+
+        # Save cached value if exists
+        if cached:
+            cached_prices[s.symbol] = cached
+
+        # Decide if we must fetch from API
+        needs_fetch = (
+            not cached
+            or cached.get("percent") is None
+            or not s.last_price_updated
+            or timezone.now() - s.last_price_updated > timedelta(hours=1)
+        )
+
+        if needs_fetch:
             symbols_to_update.append(s.symbol)
 
-    # Nothing to update
+    
     if not symbols_to_update:
-        return
-
-    # Global throttle (already present)
-    if not can_call_any_price_api(seconds=60):
-        return
-
-    prices = get_live_prices(symbols_to_update)
+        return cached_prices
+    
+    prices = get_live_prices(symbols_to_update) or {}
 
     for s in stocks:
         price_data = prices.get(s.symbol)
-        if price_data and price_data.get("price"):
-            s.last_price = Decimal(str(price_data["price"]))
+
+        if price_data and price_data.get("price") is not None:
+            live = {
+                "price": Decimal(str(price_data["price"])),
+                "percent": price_data.get("percent"),
+                "updated": timezone.now().isoformat(),
+            }
+
+            # Save price to DB (price persistence)
+            s.last_price = live["price"]
             s.last_price_updated = timezone.now()
             s.save(update_fields=["last_price", "last_price_updated"])
 
-    return prices        
+            # Cache price + percent
+            cache.set(
+                f"stock_live_{s.symbol}",
+                live,
+                timeout=CACHE_TTL
+            )
+
+            cached_prices[s.symbol] = live
+            print("CACHE CHECK:", cached_prices)
 
 
-
+    return cached_prices
 
 
 def buy_stock(request):
     if request.method == "POST":
-        symbol = request.POST.get('symbol', '').upper()
-        qty = int(request.POST.get('quantity', 0))
+        symbol = request.POST.get("symbol", "").upper()
+        qty = int(request.POST.get("quantity", 0))
 
         if qty <= 0:
             return JsonResponse({"error": "Invalid quantity"}, status=400)
+        live_data = get_live_prices([symbol]).get(symbol)
 
-        # =========================
-        # GET LIVE PRICE
-        # =========================
-        price = get_live_price(symbol)
-        if price is None:
+        if not live_data or not live_data.get("price"):
             return JsonResponse({"error": "Invalid symbol"}, status=400)
 
-        price = Decimal(str(price))
+        price = Decimal(str(live_data["price"]))
+        percent = live_data.get("percent")
+
         total_cost = price * qty
 
-        # =========================
-        # GET COMPANY NAME (once)
-        # =========================
         company_name = get_company_name(symbol)
-
-        # =========================
-        # SAVE TRANSACTION
-        # =========================
         Transaction.objects.create(
             user=request.user,
             transaction_type="BUY",
@@ -553,9 +584,6 @@ def buy_stock(request):
             amount=total_cost
         )
 
-        # =========================
-        # UPDATE / CREATE STOCK
-        # =========================
         stock, created = Stock.objects.get_or_create(
             user=request.user,
             symbol=symbol,
@@ -566,26 +594,31 @@ def buy_stock(request):
             }
         )
 
-        # 🔥 UPDATE AVERAGE BUY PRICE
         total_qty = stock.quantity + qty
         total_cost_all = (stock.avg_buy_price * stock.quantity) + total_cost
 
         stock.avg_buy_price = total_cost_all / total_qty
         stock.quantity = total_qty
 
-        # 🔥 SAVE CURRENT PRICE
         stock.last_price = price
+        stock.change_percent = percent
         stock.last_price_updated = timezone.now()
-
         stock.save()
 
-        # Clear price cache
-        cache.delete(f"live_prices_{request.user.id}")
+    
+        cache.set(
+            f"stock_live_{symbol}",
+            {
+                "price": price,
+                "percent": percent,
+                "updated": timezone.now().isoformat(),
+            },
+            timeout=3600  # 1 hour
+        )
 
         return redirect("portfolio")
 
     return render(request, "buyStock.html")
-
 
 def portfolio(request):
     return render(request, "portfolio.html")

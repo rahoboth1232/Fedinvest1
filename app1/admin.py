@@ -143,6 +143,7 @@ class StockAdmin(admin.ModelAdmin):
         "symbol",
         "quantity",
         "avg_buy_price",
+        "change_percent",
         "last_price",
         "last_price_updated",
         "user",
