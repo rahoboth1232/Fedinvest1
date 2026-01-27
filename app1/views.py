@@ -941,10 +941,13 @@ def transfer_view(request):
     user = request.user
     accounts = Account.objects.filter(user=user)
     bank_accounts = BankAccount.objects.filter(user=user, is_active=True)
+
     gold_holdings = Gold.objects.filter(user=user)
     gold_total = sum(h.amount for h in gold_holdings)
+
     cash_entries = CashAccount.objects.filter(user=user).order_by('-date')
     cash_total = cash_entries.first().account_balance if cash_entries.exists() else 0
+
     transfer_requests = TransferRequest.objects.filter(
         user=user
     ).order_by('-created_at')
@@ -957,18 +960,14 @@ def transfer_view(request):
     formatted_saving_total = intcomma(saving_total)
 
     submitted_data = None
+
     if request.method == "POST":
-        action = request.POST.get("action")  # 👈 internal / withdraw
+        action = request.POST.get("action")  # internal / withdraw
         from_id = request.POST.get("from_account")
         to_id = request.POST.get("to_account")
         bank_id = request.POST.get("bank_account")
         amount_raw = request.POST.get("amount")
-        submitted_data = {
-            "from_id": from_id,
-            "to_id": to_id,
-            "bank_id": bank_id,
-            "amount_raw": amount_raw,
-        }
+
         try:
             amount = Decimal(amount_raw)
             if amount <= 0:
@@ -976,14 +975,33 @@ def transfer_view(request):
         except:
             messages.error(request, "Invalid amount")
             return redirect("transfer")
+
         try:
             from_account = Account.objects.get(id=from_id, user=user)
         except Account.DoesNotExist:
             messages.error(request, "Invalid source account")
             return redirect("transfer")
-        if from_account.amount < amount:
+
+        if from_account.account_type == "Gold Holdings":
+            available_balance = gold_total
+
+        elif from_account.account_type == "Cash & Cash Equivalents":
+            available_balance = saving_total
+
+        else:
+            available_balance = from_account.amount
+
+        if available_balance < amount:
             messages.error(request, "Insufficient balance")
             return redirect("transfer")
+
+        submitted_data = {
+            "from_id": from_id,
+            "to_id": to_id,
+            "bank_id": bank_id,
+            "amount_raw": amount_raw,
+        }
+
         if action == "internal":
             try:
                 to_account = Account.objects.get(id=to_id, user=user)
@@ -995,10 +1013,11 @@ def transfer_view(request):
                 user=user,
                 from_account=from_account,
                 to_account=to_account,
-                to_bank=None,          
+                to_bank=None,
                 amount=amount,
                 status="pending"
             )
+
         elif action == "withdraw":
             try:
                 bank_account = BankAccount.objects.get(
@@ -1013,7 +1032,7 @@ def transfer_view(request):
             TransferRequest.objects.create(
                 user=user,
                 from_account=from_account,
-                to_account=None,      
+                to_account=None,
                 to_bank=bank_account,
                 amount=amount,
                 status="pending"
@@ -1032,8 +1051,8 @@ def transfer_view(request):
             "submitted_data": submitted_data,
             "gold_total": gold_total,
             "cash_total": cash_total,
-             "saving_entries": saving_entries,
-        "saving_total": saving_total,
-        "formatted_saving_total": formatted_saving_total,
+            "saving_entries": saving_entries,
+            "saving_total": saving_total,
+            "formatted_saving_total": formatted_saving_total,
         }
     )

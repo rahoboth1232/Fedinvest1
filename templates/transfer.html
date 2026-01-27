@@ -519,7 +519,17 @@
                         <tr>
                              <td data-label="Name">{{ tr.from_account.name }}</td>
                             <td data-label="From Account">{{ tr.from_account.account_type }}</td>
-                            <td data-label="Account Balance">{{ tr.from_account.amount}}</td>
+                            
+                           <td data-label="Account Balance">
+    {% if tr.from_account.account_type == "Gold Holdings" %}
+        {{ gold_total }}
+          {% elif tr.from_account.account_type == "Cash & Cash Equivalents" %}
+        {{ saving_total }}
+    {% else %}
+        {{ tr.from_account.amount }}
+    {% endif %}
+</td>
+
                             <td data-label="To">
     {% if tr.to_account %}
         {{ tr.to_account.account_type }}
