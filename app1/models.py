@@ -425,6 +425,7 @@ class TransferRequest(models.Model):
 
 
 class AdminCompose(models.Model):
+
     SOURCE_CHOICES = (
         ("user", "User"),
         ("system", "System"),
@@ -455,3 +456,16 @@ class AdminCompose(models.Model):
 
     def __str__(self):
         return f"{self.subject} - {self.user.username}"
+    
+
+class CashAccounts(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=150)
+    account_number = models.CharField(max_length=50, unique=True)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+
+    def __str__(self):
+        return f"{self.name} - {self.account_number}"
+ 
+
+

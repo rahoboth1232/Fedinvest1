@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.db import transaction, models
-from django.db.models import F
+from django.db.models import F, Sum
 from django.utils import timezone
 from django.utils.timezone import localtime
 from django.utils.dateformat import DateFormat
@@ -40,6 +40,7 @@ from .models import (
     Message,
     AdminCompose,
     LegalDocument,
+    CashAccounts,
 )
 from .serializers import (
     UserProfileSerializer,
@@ -378,19 +379,12 @@ def get_live_prices(symbols):
 def holdings_api(request):
     user = request.user
     stocks = Stock.objects.filter(user=user)
-
-    # ✅ ONE controlled update point
     live_prices = batch_update_stock_prices(stocks)
-
-
-    if live_prices is None:
-        
+    if live_prices is None:  
         live_prices = {}
-
-    
-
     holdings = []
     portfolio_total = Decimal("0")
+    previous_portfolio_total = Decimal("0")     
 
     for s in stocks:
         live = live_prices.get(s.symbol, {}) or {}
@@ -404,8 +398,12 @@ def holdings_api(request):
       
         else:
             total_value = None
+        if s.avg_buy_price:
+          previous_value = s.avg_buy_price * Decimal(s.quantity)
+          previous_portfolio_total += previous_value
+        else:
+           previous_value = None
             
-
         holdings.append({
             "symbol": s.symbol,
             "company_name": s.company_name,
@@ -413,35 +411,45 @@ def holdings_api(request):
             "avg_buy_price": str(s.avg_buy_price),
             "current_price": str(s.last_price) if s.last_price else None,
             "total_value": str(total_value) if total_value else None,
+            "previous_total_value": str(previous_value) if previous_value else None,
             "change_percent": percent,
             "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
+
+
+    cash_amount =(
+        CashAccounts.objects
+        .filter(user=user)
+        .aggregate(total=Sum("amount"))
+    )['total'] or Decimal("0")    
         
-
-    account = Account.objects.filter(
-        user=user,
-        account_type="Brokerage Account"
-    ).order_by("-id").first()
-
-    brokerage_balance = Decimal(str(account.amount)) if account else Decimal("0")
-    
-
-
+   
     net_portfolio_value = (
-        brokerage_balance - portfolio_total
-        if portfolio_total > 0 else brokerage_balance
+        cash_amount - previous_portfolio_total
+        if portfolio_total > 0 else cash_amount
     ).quantize(Decimal("0.01"))
     
-    
+    new_brokerage_balance = (net_portfolio_value + portfolio_total).quantize(Decimal("0.01"))
+
+
+    with transaction.atomic():
+        account=Account.objects.filter(
+            user=user,
+            account_type="Brokerage Account"
+        ).order_by("-id").first()
+
+        if account:
+            account.amount = new_brokerage_balance
+            account.save(update_fields=["amount"])
+
     
     return JsonResponse({
+        "avg_buy_price": str(s.avg_buy_price),
         "holdings": holdings,
-        "portfolio_total": str(portfolio_total),
-        "brokerage_balance": str(brokerage_balance),
+        "portfolio_total": str(portfolio_total),  
         "raw_total": str(net_portfolio_value),
+
     })
-
-
 
 def can_call_any_price_api(seconds=60):
    
@@ -516,7 +524,7 @@ def batch_update_stock_prices(stocks):
             not cached
             or cached.get("percent") is None
             or not s.last_price_updated
-            or timezone.now() - s.last_price_updated > timedelta(hours=1)
+            or timezone.now() - s.last_price_updated > timedelta(seconds=4)
         )
 
         if needs_fetch:

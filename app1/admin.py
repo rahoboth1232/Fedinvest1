@@ -1,7 +1,7 @@
 
 # Register your models here.
 from django.contrib import admin
-from .models import UserProfile, Transaction,Stock
+from .models import UserProfile, Transaction,Stock,CashAccounts
 
 
 
@@ -323,3 +323,11 @@ class AdminComposeAdmin(admin.ModelAdmin):
     readonly_fields = ("created_at",)
 
     actions = ["mark_as_read"]
+
+
+@admin.register(CashAccounts)
+class CashAccountsAdmin(admin.ModelAdmin):
+    list_display = ('name', 'account_number', 'amount')
+    search_fields = ('name', 'account_number')
+    list_filter = ('name',)
+    ordering = ('name',)
