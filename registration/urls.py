@@ -31,9 +31,8 @@ urlpatterns = [
     path('holdings/', views.holdings_view, name='holdings'),
     path('api/holdings/', views.holdings_api, name='holdings_api'),
 
-    path('portfolio/', views.portfolio, name='portfolio'),
-    path('buy/', views.buy_stock, name='buy_stock'),
-
+   path("portfolio/<int:account_id>/", views.portfolio_view, name="portfolio"),
+  path("buy/<int:account_id>/", views.buy_stock, name="buy"),
     path('messages/', views.message_list, name='messages'),
     path('messages/<int:pk>/', views.message_detail, name='message_detail'),
     path('compose/', views.compose_page, name='compose'),
@@ -41,8 +40,7 @@ urlpatterns = [
 
 
     path("api/price/<str:symbol>/", views.price_api, name="price_api"),
-    path("sell/<str:symbol>/", views.sell_stock, name="sell_stock"),
-
+path("sell/<int:account_id>/<str:symbol>/", views.sell_stock, name="sell_stock"),
     # ✅ ADD THIS NEW URL FOR GOLD HOLDINGS
     path('gold/', views.gold_view, name='gold'),
     # path("balance/", views.balance_page, name="balance"),

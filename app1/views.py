@@ -46,7 +46,15 @@ from .serializers import (
     UserProfileSerializer,
     BeneficiaryProfileSerializer,
 )
+from decimal import Decimal
+from django.db.models import Sum
+from django.db import transaction
+from django.http import JsonResponse
+from django.db.models import Q, Sum
+from decimal import Decimal
+from django.db import transaction
 from .utils.prices import get_live_price, get_live_prices
+from django.db.models import Q
 
 def HomePage(request):
     return render(request, 'home.html')
@@ -219,8 +227,6 @@ def holdings_view(request):
         "formatted_saving_total": formatted_saving_total,
     })
     
-
-   
 @login_required(login_url='login')
 
 def transactions(request):
@@ -254,8 +260,6 @@ def transactions(request):
         'transactions': user_transactions
     })
 
-
-
 def get_profile(request, user_id):
     profile = get_object_or_404(UserProfile, user_id=user_id)
     # Get the first beneficiary (optional)
@@ -276,7 +280,6 @@ def update_profile(request, user_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
 @login_required
 def get_beneficiary_profile(request, beneficiary_id):
@@ -375,16 +378,35 @@ def get_live_prices(symbols):
     return data
 
 
-
 def holdings_api(request):
     user = request.user
-    stocks = Stock.objects.filter(user=user)
+    account_id = request.GET.get("account_id")
+
+   
+    try:
+        account = Account.objects.get(id=account_id, user=user)
+    except Account.DoesNotExist:
+        return JsonResponse({"error": "Invalid account"}, status=400)
+
+    if account.account_type == "Brokerage Account":
+        stocks = Stock.objects.filter(
+            user=user
+        ).filter(
+            Q(account=account) | Q(account__isnull=True)
+        )
+    else:
+        stocks = Stock.objects.filter(
+            user=user,
+            account=account
+        )
+
     live_prices = batch_update_stock_prices(stocks)
-    if live_prices is None:  
+    if live_prices is None:
         live_prices = {}
+
     holdings = []
     portfolio_total = Decimal("0")
-    previous_portfolio_total = Decimal("0")     
+    previous_portfolio_total = Decimal("0")
 
     for s in stocks:
         live = live_prices.get(s.symbol, {}) or {}
@@ -395,15 +417,15 @@ def holdings_api(request):
         if last_price:
             total_value = last_price * Decimal(s.quantity)
             portfolio_total += total_value
-      
         else:
             total_value = None
+
         if s.avg_buy_price:
-          previous_value = s.avg_buy_price * Decimal(s.quantity)
-          previous_portfolio_total += previous_value
+            previous_value = s.avg_buy_price * Decimal(s.quantity)
+            previous_portfolio_total += previous_value
         else:
-           previous_value = None
-            
+            previous_value = None
+
         holdings.append({
             "symbol": s.symbol,
             "company_name": s.company_name,
@@ -416,41 +438,36 @@ def holdings_api(request):
             "last_updated": s.last_price_updated.isoformat() if s.last_price_updated else None,
         })
 
-
-    cash_amount =(
+    cash_amount = (
         CashAccounts.objects
-        .filter(user=user)
+        .filter(user=user, account_id=account_id)
         .aggregate(total=Sum("amount"))
-    )['total'] or Decimal("0")    
-        
-   
+    )['total'] or Decimal("0")
+    print(previous_portfolio_total,"ashuu")
+    print(cash_amount,"kasdkj")
+
     net_portfolio_value = (
         cash_amount - previous_portfolio_total
         if portfolio_total > 0 else cash_amount
     ).quantize(Decimal("0.01"))
-    
+
     new_brokerage_balance = (net_portfolio_value + portfolio_total).quantize(Decimal("0.01"))
 
-
     with transaction.atomic():
-        account=Account.objects.filter(
-            user=user,
-            account_type="Brokerage Account"
-        ).order_by("-id").first()
+          account=Account.objects.filter(
+              user=user,
+              id=account_id
+          ).first()
+          if account:
+              account.amount=new_brokerage_balance
+              account.save(update_fields=["amount"])
 
-        if account:
-            account.amount = new_brokerage_balance
-            account.save(update_fields=["amount"])
-
-    
     return JsonResponse({
-        "avg_buy_price": str(s.avg_buy_price),
         "holdings": holdings,
-        "portfolio_total": str(portfolio_total),  
+        "portfolio_total": str(portfolio_total),
         "raw_total": str(net_portfolio_value),
-
+       
     })
-
 def can_call_any_price_api(seconds=60):
    
     key = "global_price_api_lock"
@@ -460,7 +477,6 @@ def can_call_any_price_api(seconds=60):
 
     cache.set(key, True, seconds)
     return True
-
 
 def price_api(request, symbol):
     
@@ -478,7 +494,6 @@ def price_api(request, symbol):
         "symbol": symbol,
         "price": float(price_data["price"])
     })
-
 
 def get_company_name(symbol):
     cache_key = f"company_name_{symbol}"
@@ -499,11 +514,7 @@ def get_company_name(symbol):
     except Exception:
         return symbol
 
-
-
 CACHE_TTL = 3600  # 5 minutes
-
-
 def batch_update_stock_prices(stocks):
     print("batch_update_stock_prices called")
    
@@ -564,14 +575,21 @@ def batch_update_stock_prices(stocks):
 
     return cached_prices
 
+def buy_stock(request, account_id):
 
-def buy_stock(request):
+    account = get_object_or_404(
+        Account,
+        id=account_id,
+        user=request.user
+    )
+
     if request.method == "POST":
         symbol = request.POST.get("symbol", "").upper()
         qty = int(request.POST.get("quantity", 0))
 
         if qty <= 0:
             return JsonResponse({"error": "Invalid quantity"}, status=400)
+
         live_data = get_live_prices([symbol]).get(symbol)
 
         if not live_data or not live_data.get("price"):
@@ -582,38 +600,61 @@ def buy_stock(request):
 
         total_cost = price * qty
 
+        if account.amount < total_cost:
+            return JsonResponse({"error": "Insufficient balance"}, status=400)
+
         company_name = get_company_name(symbol)
-        Transaction.objects.create(
-            user=request.user,
-            transaction_type="BUY",
-            stock_symbol=symbol,
-            quantity=qty,
-            price_per_share=price,
-            amount=total_cost
-        )
 
-        stock, created = Stock.objects.get_or_create(
-            user=request.user,
-            symbol=symbol,
-            defaults={
-                "company_name": company_name,
-                "quantity": 0,
-                "avg_buy_price": Decimal("0"),
-            }
-        )
+        with transaction.atomic():
 
-        total_qty = stock.quantity + qty
-        total_cost_all = (stock.avg_buy_price * stock.quantity) + total_cost
+            # ✅ Deduct money from selected account
+            account.amount -= total_cost
+            account.save(update_fields=["amount"])
 
-        stock.avg_buy_price = total_cost_all / total_qty
-        stock.quantity = total_qty
+            Transaction.objects.create(
+                user=request.user,
+                account=account,
+                transaction_type="BUY",
+                stock_symbol=symbol,
+                quantity=qty,
+                price_per_share=price,
+                amount=total_cost
+            )
 
-        stock.last_price = price
-        stock.change_percent = percent
-        stock.last_price_updated = timezone.now()
-        stock.save()
+            # ✅ FIXED STOCK FETCH LOGIC (NO DUPLICATE ROW ISSUE)
 
-    
+            stock = Stock.objects.filter(
+                user=request.user,
+                symbol=symbol
+            ).filter(
+                Q(account=account) | Q(account__isnull=True)
+            ).first()
+
+            if stock:
+                # If old stock had NULL account, attach it now
+                if stock.account is None:
+                    stock.account = account
+            else:
+                stock = Stock.objects.create(
+                    user=request.user,
+                    account=account,
+                    symbol=symbol,
+                    company_name=company_name,
+                    quantity=0,
+                    avg_buy_price=Decimal("0"),
+                )
+
+            # ✅ KEEPING YOUR ORIGINAL CALCULATION LOGIC SAME
+            total_qty = stock.quantity + qty
+            total_cost_all = (stock.avg_buy_price * stock.quantity) + total_cost
+
+            stock.avg_buy_price = total_cost_all / total_qty
+            stock.quantity = total_qty
+            stock.last_price = price
+            stock.change_percent = percent
+            stock.last_price_updated = timezone.now()
+            stock.save()
+
         cache.set(
             f"stock_live_{symbol}",
             {
@@ -621,63 +662,120 @@ def buy_stock(request):
                 "percent": percent,
                 "updated": timezone.now().isoformat(),
             },
-            timeout=3600  # 1 hour
+            timeout=3600
         )
 
-        return redirect("portfolio")
+        return redirect("portfolio", account_id=account.id)
 
-    return render(request, "buyStock.html")
+    return render(request, "buyStock.html", {
+        "account_id": account.id
+    })
+def portfolio_view(request, account_id):
+    return render(request, "portfolio.html", {
+        "account_id": account_id
+    })
 
-def portfolio(request):
-    return render(request, "portfolio.html")
+def sell_stock(request, account_id, symbol):
 
-def sell_stock(request, symbol):
-    stock = get_object_or_404(Stock, user=request.user, symbol=symbol)
+    # ✅ Step 1: Get Account
+    account = get_object_or_404(
+        Account,
+        id=account_id,
+        user=request.user
+    )
 
+    # ✅ Step 2: Get Stock (handle old NULL account stocks also)
+    stock = Stock.objects.filter(
+        user=request.user,
+        symbol=symbol
+    ).filter(
+        Q(account=account) | Q(account__isnull=True)
+    ).first()
+
+    if not stock:
+        messages.error(request, "Stock not found.")
+        return redirect("portfolio", account_id=account.id)
+
+    # ✅ Step 3: Handle POST (Sell Logic)
     if request.method == "POST":
-        qty = int(request.POST.get("quantity"))
+
+        try:
+            qty = int(request.POST.get("quantity"))
+        except (TypeError, ValueError):
+            messages.error(request, "Invalid quantity.")
+            return redirect("sell_stock", account_id=account.id, symbol=symbol)
+
         mode = request.POST.get("mode")
         custom_price = request.POST.get("custom_price")
 
+        if qty <= 0:
+            messages.error(request, "Quantity must be greater than 0.")
+            return redirect("sell_stock", account_id=account.id, symbol=symbol)
+
         if qty > stock.quantity:
             messages.error(request, "You cannot sell more than you own.")
-            return redirect("sell_stock", symbol=symbol)
+            return redirect("sell_stock", account_id=account.id, symbol=symbol)
 
+        # ✅ Determine Sell Price
         if mode == "market":
             sell_price = Decimal(get_live_price(symbol))
 
         elif mode == "buyprice":
-            sell_price = stock.buy_price
+            sell_price = stock.avg_buy_price
 
-       
         elif mode == "custom":
             if not custom_price:
                 messages.error(request, "Enter custom price.")
-                return redirect("sell_stock", symbol=symbol)
+                return redirect("sell_stock", account_id=account.id, symbol=symbol)
             sell_price = Decimal(custom_price)
+
+        else:
+            messages.error(request, "Invalid sell mode selected.")
+            return redirect("sell_stock", account_id=account.id, symbol=symbol)
 
         total_sell_amount = sell_price * qty
 
+        # ✅ Step 4: Add money back to SAME account
+        account.amount += total_sell_amount
+        account.save(update_fields=["amount"])
+
+        # ✅ Step 5: Reduce stock quantity
         stock.quantity -= qty
+
+        # 🔥 IMPORTANT FIX:
+        # If old stock had NULL account, now assign it properly
+        if stock.account is None:
+            stock.account = account
+
         if stock.quantity == 0:
             stock.delete()
         else:
             stock.save()
 
+        # ✅ Step 6: Create Transaction
         Transaction.objects.create(
-    user=request.user,
-    transaction_type="SELL",
-    stock_symbol=symbol,
-    quantity=qty,
-    price_per_share=sell_price,
-    amount=total_sell_amount,
-    notes="Sold stock"
-)
+            user=request.user,
+            account=account,
+            transaction_type="SELL",
+            stock_symbol=symbol,
+            quantity=qty,
+            price_per_share=sell_price,
+            amount=total_sell_amount,
+            notes="Sold stock"
+        )
 
-        messages.success(request, f"Sold {qty} shares of {symbol} at ${sell_price}.")
-        return redirect("portfolio")
+        messages.success(
+            request,
+            f"Sold {qty} shares of {symbol} at ${sell_price}."
+        )
 
-    return render(request, "sell_stock.html", {"stock": stock})
+        return redirect("portfolio", account_id=account.id)
+
+    # ✅ Step 7: Render Page
+    return render(request, "sell_stock.html", {
+        "stock": stock,
+        "account_id": account.id
+    })
 def gold_view(request):
     user = request.user
     holdings = Gold.objects.filter(user=user).order_by('-date')
@@ -941,8 +1039,6 @@ def activity_list(request):
 
 def performancePage(request):
      return render(request, "Performance.html")
-
-
 
 @login_required
 def transfer_view(request):

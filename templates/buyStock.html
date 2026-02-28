@@ -1242,76 +1242,7 @@ function drawMiniChart(canvas, data, isPositive) {
     ctx.stroke();
 }
 
-async function loadPopularStocks() {
-    const symbols = ['AAPL', 'GOOGL', 'MSFT', 'TSLA', ];
-    stockCardsContainer.innerHTML = '';
 
-    for (const symbol of symbols) {
-        const data = await fetchStockPrice(symbol);
-        if (!data || !data.price) continue;
-
-        const price = Number(data.price);
-        const change = data.change || 0;
-        const changePercent = data.changePercent || 0;
-        const high = data.high || price * 1.02;
-        const low = data.low || price * 0.98;
-        const prevClose = data.previousClose || price;
-        
-        const isPositive = change >= 0;
-        
-        const card = document.createElement('div');
-        card.className = 'stock-card';
-        
-        const chartData = generateChartData(price, isPositive);
-        
-        card.innerHTML = `
-            <div class="stock-card-header">
-                <div class="stock-info">
-                    <div class="stock-symbol">${symbol}</div>
-                    <div class="stock-name">${data.name || 'Stock'}</div>
-                </div>
-               
-            </div>
-            <div class="stock-card-body">
-                <div class="price-section">
-                    <div class="stock-price">$${price.toFixed(2)}</div>
-                </div>
-            
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <span class="stat-label">High</span>
-                        <span class="stat-value">$${high.toFixed(2)}</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-label">Low</span>
-                        <span class="stat-value">$${low.toFixed(2)}</span>
-                    </div>
-                </div>
-                <div class="stats-grid" style="margin-bottom: 0;">
-                    <div class="stat-item" style="grid-column: 1 / -1; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                        <span class="stat-label">Prev. Close</span>
-                        <span class="stat-value">$${prevClose.toFixed(2)}</span>
-                    </div>
-                </div>
-                <button class="quick-buy-btn" onclick="quickBuy('${symbol}')">Quick Buy</button>
-            </div>
-            <div class="card-footer">
-                Last updated: ${new Date().toLocaleTimeString()}
-            </div>
-        `;
-        stockCardsContainer.appendChild(card);
-        
-        // Draw chart after card is added to DOM
-        setTimeout(() => {
-            const canvas = document.getElementById(chart-`${symbol}`);
-            if (canvas) {
-                drawMiniChart(canvas, chartData, isPositive);
-            }
-        }, 10);
-    }
-}
-
-loadPopularStocks();
 
 document.getElementById('buyStockForm').addEventListener('reset', () => {
     stockPreview.classList.remove('active');

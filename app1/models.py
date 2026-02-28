@@ -28,7 +28,6 @@ class UserProfile(models.Model):
         help_text="Full address (optional)"
     )
 
-    # ✅ Control visibility on frontend
     
     def masked_ssn(self):
         if self.ssn and len(self.ssn) == 9:
@@ -149,6 +148,12 @@ class Transaction(models.Model):
         ('WITHDRAW', 'Withdraw'),
         ('DIVIDEND', 'Dividend'),
     ]
+    account = models.ForeignKey(
+    Account,
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True
+) 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     transaction_type = models.CharField(max_length=10, choices=TRANSACTION_TYPES)
     stock_symbol = models.CharField(max_length=10, blank=True, null=True)
@@ -194,10 +199,11 @@ class Message(models.Model):
 
 class Stock(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+   
     company_name = models.CharField(max_length=255)
     symbol = models.CharField(max_length=10)
     quantity = models.PositiveIntegerField(default=0)
-    account = models.ForeignKey('Account', on_delete=models.CASCADE, null=True, blank=True)
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, null=True, blank=True)
     change_percent = models.DecimalField(
     max_digits=7,
     decimal_places=2,
@@ -415,7 +421,6 @@ class TransferRequest(models.Model):
         blank=True,
         related_name="transfer_requests_in"    # 🔧 CHANGED
     )
-
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -460,6 +465,12 @@ class AdminCompose(models.Model):
 
 class CashAccounts(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    account = models.ForeignKey(
+    Account,
+    on_delete=models.CASCADE,
+    null=True,
+    blank=True
+) 
     name = models.CharField(max_length=150)
     account_number = models.CharField(max_length=50, unique=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2)

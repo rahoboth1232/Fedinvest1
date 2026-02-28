@@ -214,11 +214,16 @@
                 d="M19 9l-7 7-3-3"/>
         </svg>
 
-        {% if account.account_type == "Brokerage Account" %}
-            <a href="{% url 'portfolio' %}" class="account-link">
-                {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
-            </a>
+      {% if account.account_type == "Brokerage Account" %}
+    <a href="{% url 'portfolio' account.id %}" class="account-link">
+        {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+    </a>
 
+{% elif account.account_type == "Brokerage Accounts" %}
+    <a href="{% url 'portfolio' account.id %}" class="account-link">
+        {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+    </a>
+    
         {% elif account.account_type == "Gold Holdings" %}
             <a href="{% url 'gold' %}" class="account-link">
                 {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
@@ -274,7 +279,6 @@
 
 </div>
 </div>
-
 <script>
 function checkAccess(accountType) {
   const type = accountType.trim().toLowerCase();

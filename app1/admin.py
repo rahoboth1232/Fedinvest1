@@ -1,37 +1,39 @@
-
-# Register your models here.
 from django.contrib import admin
-from .models import UserProfile, Transaction,Stock,CashAccounts
-
-
-
-
-from django.contrib import admin
-from .models import Transaction
-
+from django import forms
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator, EmailValidator
+from django.db import transaction
+from django.contrib import messages
+from .models import (
+    UserProfile,
+    Transaction,
+    Stock,
+    CashAccounts,
+    BankAccount,
+    TransferRequest,
+    Account,
+    BeneficiaryProfile,
+    Message,
+    Gold,
+    CashAccount,
+    SavingAccount,
+    Crypto,
+    LegalDocument
+)
 @admin.register(Transaction)
 class TransactionAdmin(admin.ModelAdmin):
     readonly_fields = ('amount',)
-    list_display = ('user', 'transaction_type', 'stock_symbol','quantity','price_per_share', 'amount', 'date')
+    list_display = ('user', 'account',
+ 'transaction_type', 'stock_symbol','quantity','price_per_share', 'amount', 'date')
     search_fields = ('user__username', 'stock_symbol', 'transaction_type')
     list_filter = ('transaction_type', 'date')
 
-
-# app/admin.py
-from django.contrib import admin
-from .models import Account 
 
 @admin.register(Account)
 class AccountAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'account_type', 'account_number', 'amount')
     list_filter = ('user', 'account_type')
     search_fields = ('name', 'account_number', 'user__username')
-
-
-from django.contrib import admin
-from django.core.exceptions import ValidationError
-from django import forms
-from .models import UserProfile
 
 class UserProfileAdminForm(forms.ModelForm):
     class Meta:
@@ -55,7 +57,6 @@ class UserProfileAdminForm(forms.ModelForm):
         #     raise ValidationError("SSN must be exactly 9 digits.")
         return ssn
 
-
 class UserProfileAdmin(admin.ModelAdmin):
     form = UserProfileAdminForm
     list_display = ('user', 'full_name', 'mobile', 'email', 'ssn', 'updated_at', 'address')
@@ -72,18 +73,6 @@ class UserProfileAdmin(admin.ModelAdmin):
 
 admin.site.register(UserProfile, UserProfileAdmin)
 
-from django.contrib import admin
-from django import forms
-from .models import BeneficiaryProfile
-from django.core.exceptions import ValidationError
-import re
-from django.contrib import admin
-from django import forms
-from django.core.exceptions import ValidationError
-from django.core.validators import RegexValidator, EmailValidator
-from .models import BeneficiaryProfile
-
-# Form for admin validation
 class BeneficiaryProfileAdminForm(forms.ModelForm):
     class Meta:
         model = BeneficiaryProfile
@@ -105,7 +94,6 @@ class BeneficiaryProfileAdminForm(forms.ModelForm):
         #     raise ValidationError("SSN must be exactly 9 digits")
         return ssn
 
-# Admin display
 class BeneficiaryProfileAdmin(admin.ModelAdmin):
     form = BeneficiaryProfileAdminForm
     list_display = ('full_name', 'user', 'relation', 'mobile', 'email', 'masked_ssn', 'updated_at')
@@ -121,21 +109,12 @@ class BeneficiaryProfileAdmin(admin.ModelAdmin):
 
 admin.site.register(BeneficiaryProfile, BeneficiaryProfileAdmin)
 
-
-from django.contrib import admin
-from .models import Message
-
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "user", "sender", "date", "is_read")
     list_filter = ("is_read", "date")
     search_fields = ("title", "body", "user__username", "sender__username")
-
-    
-
-from django.contrib import admin
-from .models import Stock
-
+ 
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
     list_display = (
@@ -147,26 +126,21 @@ class StockAdmin(admin.ModelAdmin):
         "last_price",
         "last_price_updated",
         "user",
+        "account",
+
     )
 
     search_fields = ("company_name", "symbol")
-    list_filter = ("user",)
+    list_filter = ("user", 'account')
     ordering = ("symbol",)
 
     readonly_fields = ("last_price", "last_price_updated")
-from django.contrib import admin
-from .models import Gold
 
 class GoldAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'description', 'weight', 'price', 'amount')
     list_filter = ('user', 'date')
     search_fields = ('description', 'user__username')
-
 admin.site.register(Gold, GoldAdmin)
-
-from django.contrib import admin
-from django import forms
-from .models import CashAccount
 
 class CashAccountAdminForm(forms.ModelForm):
     class Meta:
@@ -189,18 +163,11 @@ class CashAccountAdmin(admin.ModelAdmin):
     list_filter = ('user', 'date')
     search_fields = ('user__username', 'description', 'account_number')
 
-from django.contrib import admin
-from .models import SavingAccount
-
 @admin.register(SavingAccount)
 class SavingAccountAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'account_number', 'credit', 'debit', 'account_balance')
     list_filter = ('user', 'date')
     search_fields = ('user__username', 'account_number', 'description')
-
-
-from django.contrib import admin
-from .models import Crypto
 
 class CryptoAdmin(admin.ModelAdmin):
     list_display = ("date", "description", "price", "formatted_quantity", "amount")
@@ -217,12 +184,7 @@ class CryptoAdmin(admin.ModelAdmin):
     def formatted_quantity(self, obj):
         return f"{obj.quantity:.3f}"
     formatted_quantity.short_description = "Quantity"
-
 admin.site.register(Crypto, CryptoAdmin)
-
-
-from django.contrib import admin
-from .models import LegalDocument
 
 @admin.register(LegalDocument)
 class LegalDocumentAdmin(admin.ModelAdmin):
@@ -233,11 +195,6 @@ class LegalDocumentAdmin(admin.ModelAdmin):
     autocomplete_fields = ('user',)
 
     from django.contrib import admin
-from .models import BankAccount
-
-from django.contrib import admin
-from .models import BankAccount
-
 
 @admin.register(BankAccount)
 class BankAccountAdmin(admin.ModelAdmin):
@@ -258,10 +215,6 @@ class BankAccountAdmin(admin.ModelAdmin):
         return "N/A"
 
     masked_account_number.short_description = "Account Number"
-from django.contrib import admin
-from django.db import transaction
-from django.contrib import messages
-from .models import BankAccount, TransferRequest, AccountTransfer
 
 @admin.register(TransferRequest)
 class TransferRequestAdmin(admin.ModelAdmin):
@@ -305,7 +258,6 @@ class TransferRequestAdmin(admin.ModelAdmin):
         queryset.filter(status='pending').update(status='rejected')
         self.message_user(request, "Selected transfers rejected")
 
-
 from .models import AdminCompose
 @admin.register(AdminCompose)
 class AdminComposeAdmin(admin.ModelAdmin):
@@ -324,10 +276,10 @@ class AdminComposeAdmin(admin.ModelAdmin):
 
     actions = ["mark_as_read"]
 
-
 @admin.register(CashAccounts)
 class CashAccountsAdmin(admin.ModelAdmin):
-    list_display = ('name', 'account_number', 'amount')
+    
+    list_display = ('name', 'account_number', 'amount','account')
     search_fields = ('name', 'account_number')
-    list_filter = ('name',)
+    list_filter = ('name', 'account_number')
     ordering = ('name',)
