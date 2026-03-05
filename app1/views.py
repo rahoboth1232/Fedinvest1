@@ -232,6 +232,12 @@ def holdings_view(request):
 def transactions(request):
 
     if request.method == 'POST':
+        
+        
+        
+        account_id = request.POST.get('account')
+
+        account = Account.objects.get(id=account_id, user=request.user)
         transaction_type = request.POST.get('transaction_type')
         stock_symbol = request.POST.get('stock_symbol') or ''
         quantity = request.POST.get('quantity') or 0
@@ -241,6 +247,8 @@ def transactions(request):
 
         Transaction.objects.create_transaction(
             user=request.user,
+            account=account,
+
             transaction_type=transaction_type,
             stock_symbol=stock_symbol,
             quantity=quantity,
