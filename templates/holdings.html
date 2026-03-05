@@ -223,6 +223,16 @@
     <a href="{% url 'portfolio' account.id %}" class="account-link">
         {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
     </a>
+
+{% elif account.account_type == "Brokerage Account2" %}
+    <a href="{% url 'portfolio' account.id %}" class="account-link">
+        {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+    </a>
+
+{% elif account.account_type == "Brokerage Account3 " %}
+    <a href="{% url 'portfolio' account.id %}" class="account-link">
+        {{ account.name }} - {{ account.account_type }} - {{ account.account_number }}
+    </a>
     
         {% elif account.account_type == "Gold Holdings" %}
             <a href="{% url 'gold' %}" class="account-link">
