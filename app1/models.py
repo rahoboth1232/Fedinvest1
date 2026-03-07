@@ -441,6 +441,7 @@ class AdminCompose(models.Model):
         on_delete=models.CASCADE,
         help_text="User who triggered this message"
     )
+    to = models.CharField(max_length=255)  # just store the text from the form
 
     subject = models.CharField(max_length=255)
     message = models.TextField()

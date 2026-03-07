@@ -5,7 +5,7 @@
     <title>Compose Message</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
  
     <style>
         .compose {
@@ -139,6 +139,21 @@ input, textarea {
         .alert-ok:hover {
             background: #0b3b70;
         }
+
+    .swal-title-small {
+    font-size: 1rem !important;
+    margin-bottom: 0.2rem !important;
+}
+
+.swal-content-small {
+    font-size: 0.85rem !important;
+    line-height: 1.2rem !important;
+}
+
+.swal-confirm-small {
+    font-size: 0.85rem !important;
+    padding: 4px 10px !important;
+}
     </style>
 </head>
 
@@ -286,6 +301,50 @@ function closeAlert() {
     window.location.href = "{% url 'messages' %}";
 }
 </script> -->
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    {% if success %}
+    Swal.fire({
+        title: 'Message Sent!',
+        text: 'Your message has been successfully sent.',
+        icon: 'success',
+        confirmButtonText: 'OK',
+        allowOutsideClick: false,
+        width: '280px',       // smaller width
+        padding: '0.8rem',    // smaller padding
+        timerProgressBar: true,
+        customClass: {
+            title: 'swal-title-small',
+            content: 'swal-content-small',
+            confirmButton: 'swal-confirm-small'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = "{% url 'messages' %}";
+        }
+    });
+    {% endif %}
+
+    {% if error %}
+    Swal.fire({
+        title: 'Error!',
+        text: '{{ error }}',
+        icon: 'error',
+        confirmButtonText: 'OK',
+        width: '280px',
+        padding: '0.8rem',
+        customClass: {
+            title: 'swal-title-small',
+            content: 'swal-content-small',
+            confirmButton: 'swal-confirm-small'
+        }
+    });
+    {% endif %}
+});
+</script>
+
+
 
 </body>
 </html>

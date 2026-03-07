@@ -253,13 +253,12 @@ a{
             <a class="erbtn" href="{% url 'dashboard' %}">Dashboard</a>
             <a class="erbtn" href="{% url 'holdings' %}">Holdings</a>
             <a class="erbtn" href="{% url 'activity' %}">Activity</a>
-            <a class="erbtn" href="{% url 'portfolio' %}">Performance</a>
+            <a class="erbtn" href="{% url 'performance' %}">Performance</a>
+            
              <a class="erbtn" href="{% url 'transfer' %}">Transfer</a>
         </nav>
     </div>
 </div>
-
-
 
 <div class="messages">
 
@@ -270,7 +269,15 @@ a{
     <section class="message-list">
 
         <div class="message-header">
-            <strong><i class="ri-inbox-line"></i> Inbox</strong>
+            <!-- Toggle -->
+            <div class="message-toggle">
+                <a href="?box=inbox" class="toggle-btn {% if box == 'inbox' %}active{% endif %}">
+                    <i class="ri-inbox-line"></i> Inbox
+                </a>
+                <a href="?box=sent" class="toggle-btn {% if box == 'sent' %}active{% endif %}">
+                    <i class="ri-send-plane-line"></i> Sent
+                </a>
+            </div>
 
             <a href="{% url 'compose' %}">
                 <button type="button" class="compose-btn">
@@ -279,21 +286,40 @@ a{
             </a>
         </div>
 
+        <h2>{% if box == 'sent' %}Sent Messages{% else %}Inbox{% endif %}</h2>
+
         <div class="message-table-wrapper">
             <table class="message-table">
                 <thead>
                     <tr>
-                        <th><i class="ri-file-text-line"></i> Title</th>
-                        <th><i class="ri-calendar-line"></i> Date</th>
-                        <th><i class="ri-settings-3-line"></i> Action</th>
+                        {% if box == 'inbox' %}
+                            <th><i class="ri-file-text-line"></i> From</th>
+                            <th><i class="ri-calendar-line"></i> Title</th>
+                            <th><i class="ri-settings-3-line"></i> Message</th>
+                            <th><i class="ri-settings-3-line"></i> Sent On</th>
+                        {% else %}
+                            <th><i class="ri-file-text-line"></i> To</th>
+                            <th><i class="ri-calendar-line"></i> Subject</th>
+                            <th><i class="ri-settings-3-line"></i> Message</th>
+                            <th><i class="ri-settings-3-line"></i> Sent On</th>
+                        {% endif %}
+                        <th><i class="ri-eye-line"></i> Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for msg in messages %}
                     <tr class="message-row">
-                        <td class="msg-title">{{ msg.title }}</td>
-                        <td class="msg-date">{{ msg.date|date:"M d, Y" }}</td>
+                        {% if box == 'inbox' %}
+                            <td class="msg-title">{{ msg.title }}</td>
+                            <td class="msg-body">{{ msg.body }}</td>
+                            <td class="msg-date">{{ msg.date }}</td>
+                        {% else %}
+                            <td class="msg-to">{{ msg.to }}</td>
+                            <td class="msg-subject">{{ msg.subject }}</td>
+                            <td class="msg-body">{{ msg.message }}</td>
+                            <td class="msg-date">{{ msg.created_at }}</td>
+                        {% endif %}
                         <td class="msg-action">
                             <a href="{% url 'message_detail' msg.id %}" class="view-btn">
                                 <i class="ri-eye-line"></i> View
@@ -302,7 +328,7 @@ a{
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="3" class="no-msg">
+                        <td colspan="5" class="no-msg">
                             <i class="ri-mail-close-line"></i> No messages yet.
                         </td>
                     </tr>
@@ -310,12 +336,38 @@ a{
                 </tbody>
             </table>
         </div>
-
     </section>
 
 </div>
 
- 
+<!-- Optional CSS for toggle -->
+<style>
+.message-toggle {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.toggle-btn {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: #f0f0f0;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.toggle-btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.toggle-btn:hover {
+    background-color: #e0e0e0;
+}
+</style>
 <script src="{% static 'js/main.js' %}"></script>
 </body>
 </html>

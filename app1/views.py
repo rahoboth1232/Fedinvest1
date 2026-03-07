@@ -310,8 +310,18 @@ def update_beneficiary_profile(request, beneficiary_id):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@login_required
 def message_list(request):
-    messages = Message.objects.filter(user=request.user)
+    box = request.GET.get("box", "inbox")  # default to inbox
+    accounts = Account.objects.filter(user=request.user)
+    if box == "sent":
+        # Show sent messages from AdminCompose
+        messages = AdminCompose.objects.filter(user=request.user).order_by('-created_at')
+    else:
+        # Show inbox messages from Message
+        messages = Message.objects.filter(user=request.user).order_by('-date')
+
+    return render(request, "messages.html", {"messages": messages, "box": box , 'accounts': accounts,})
     return render(request, 'messages.html', {'messages': messages})
 def message_detail(request, pk):
     message = get_object_or_404(Message, pk=pk, user=request.user)
@@ -320,31 +330,39 @@ def message_detail(request, pk):
         message.is_read = True
         message.save()
     return render(request, 'message_detail.html', {'message': message})
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
+from .models import AdminCompose
 
 @login_required
 def compose_page(request):
     print("COMPOSE VIEW HIT:", request.method)
 
-   
     if request.method == "GET":
         return render(request, "compose.html")
 
     if request.method == "POST":
+        to_field = request.POST.get("to", "").strip()
         title = request.POST.get("subject", "").strip()
         body = request.POST.get("body", "").strip()
 
-        if not title or not body:
-            return JsonResponse(
-                {"success": False, "error": "Title and body are required"},
-                status=400
-            )
+        if not to_field or not title or not body:
+            # Optionally you can flash an error message instead of JSON for redirect flow
+            return render(request, "compose.html", {"error": "All fields are required"})
+
+        # Save message with 'to' as plain text
         AdminCompose.objects.create(
-    user=request.user,
-    subject=title,
-    message=body,
-    source="user"
-)
-        return render(request, "compose.html")
+            user=request.user,
+            to=to_field,
+            subject=title,
+            message=body,
+            source="user"
+        )
+
+        # Redirect to the message list page after successful submission
+        return render(request, "compose.html", {"success": True})
+
     return render(request, "compose.html")
 
 client = finnhub.Client(api_key="d45gnf9r01qsugta9ai0d45gnf9r01qsugta9aig")  
@@ -1150,6 +1168,10 @@ def transfer_view(request):
                 status="pending"
             )
 
+        if available_balance < amount:
+            messages.error(request, "Insufficient balance")
+            return redirect("transfer")
+
         messages.success(request, "Transfer request sent successfully")
         return redirect("transfer")
 
@@ -1168,3 +1190,4 @@ def transfer_view(request):
             "formatted_saving_total": formatted_saving_total,
         }
     )
+    

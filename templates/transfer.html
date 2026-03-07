@@ -397,13 +397,7 @@
     </div>
 </div>
     <!-- Withdrawal Confirmation Modal -->
-    <div id="withdrawModal" class="modal">
-        <div class="modal-content">
-            <h3>Withdrawal Requested</h3>
-            <p>Your withdrawal request has been sent.<br>The amount will be transferred shortly after approval.</p>
-            <button onclick="confirmWithdraw()">OK</button>
-        </div>
-    </div>
+   
 
     <div class="container">
         <div class="header">
@@ -492,10 +486,9 @@
                     {% endfor %}
                 </select>
 
-                <button type="submit" class="btn btn-primary" onclick="handleWithdraw(event)">
-                    Request Withdrawal
-                </button>
-
+               <button type="submit" class="btn btn-primary" onclick="handleWithdraw(event)">
+    Request Withdrawal
+</button>
                 <p class="note">
                     Withdrawals require admin approval and may take up to 3-5 business days.
                 </p>
@@ -567,7 +560,18 @@
             </table>
         </div>
     </div>
+     <div id="withdrawModal" class="modal">
+        <div class="modal-content">
+            <h3>Withdrawal Requested</h3>
+            <p>Your withdrawal request has been sent.<br>The amount will be transferred shortly after approval.</p>
+            <button onclick="confirmWithdraw()">OK</button>
+        </div>
+    </div>
     <script>
+        function handleWithdraw(event) {
+    event.preventDefault(); 
+    openWithdrawModal();
+}
         function switchMode(mode) {
             document.getElementById("internal").classList.remove("active");
             document.getElementById("withdraw").classList.remove("active");

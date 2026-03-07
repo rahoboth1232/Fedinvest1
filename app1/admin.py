@@ -115,6 +115,24 @@ class MessageAdmin(admin.ModelAdmin):
     list_filter = ("is_read", "date")
     search_fields = ("title", "body", "user__username", "sender__username")
  
+from django.contrib import admin
+from .models import Stock, Account
+
+# Custom filter for brokerage accounts
+class BrokerageAccountFilter(admin.SimpleListFilter):
+    title = 'Account' 
+    parameter_name = 'account'  # Query parameter
+
+    def lookups(self, request, model_admin):
+       
+        brokerage_accounts = Account.objects.filter(account_type__icontains='brokerage account')
+        return [(acc.id, acc.name) for acc in brokerage_accounts]
+
+    def queryset(self, request, queryset):
+        if self.value():
+            return queryset.filter(account__id=self.value())
+        return queryset
+
 @admin.register(Stock)
 class StockAdmin(admin.ModelAdmin):
     list_display = (
@@ -127,14 +145,15 @@ class StockAdmin(admin.ModelAdmin):
         "last_price_updated",
         "user",
         "account",
-
     )
 
     search_fields = ("company_name", "symbol")
-    list_filter = ("user", 'account')
+    # Use custom filter here
+    list_filter = ("user", BrokerageAccountFilter)
     ordering = ("symbol",)
 
     readonly_fields = ("last_price", "last_price_updated")
+
 
 class GoldAdmin(admin.ModelAdmin):
     list_display = ('user', 'date', 'description', 'weight', 'price', 'amount')
