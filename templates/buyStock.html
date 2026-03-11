@@ -1249,15 +1249,9 @@ document.getElementById('buyStockForm').addEventListener('reset', () => {
     submitBtn.disabled = false;
 });
 
-document.getElementById('buyStockForm').addEventListener('submit', (e) => {
-    e.preventDefault();
+document.getElementById('buyStockForm').addEventListener('submit', () => {
     submitBtn.innerHTML = '⏳ Processing Trade...';
     submitBtn.disabled = true;
-    
-    // Submit the form after showing loading state
-    setTimeout(() => {
-        e.target.submit();
-    }, 500);
 });
 
 </script>
