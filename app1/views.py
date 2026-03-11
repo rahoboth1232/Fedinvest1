@@ -633,9 +633,7 @@ def buy_stock(request, account_id):
 
         with transaction.atomic():
 
-            # ✅ Deduct money from selected account
-            account.amount -= total_cost
-            account.save(update_fields=["amount"])
+            
 
             Transaction.objects.create(
                 user=request.user,
