@@ -506,15 +506,21 @@ def holdings_api(request):
 #     return True
 
 def price_api(request, symbol):
-    data = get_stock_price(symbol)
+    try:
+        data = get_stock_price(symbol)
 
-    if not data:
-        return JsonResponse({"error": "Invalid symbol"}, status=400)
+        if not data or not data.get("price"):
+            return JsonResponse({"error": "Invalid symbol"}, status=400)
 
-    return JsonResponse({
-        "symbol": symbol,
-        "price": float(data["price"])
-    })
+        return JsonResponse({
+            "symbol": symbol,
+            "price": float(data["price"])
+        })
+
+    except Exception as e:
+        print("PRICE API ERROR:", str(e))  # logs error
+        return JsonResponse({"error": "Server error"}, status=500)
+
 def get_company_name(symbol):
     cache_key = f"company_name_{symbol}"
     name = cache.get(cache_key)
