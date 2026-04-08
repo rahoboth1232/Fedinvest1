@@ -411,10 +411,10 @@ let currentCandle = null;
 let candles = [];
 let tvWidget;
 
-console.log("adahsvdjasj")
+
 // ✅ Use account_id from Django URL
 async function pollHoldingsOnce() {
-  console.log("ajkajsjkdn")
+  
   if (paused) return;
   if (!ACCOUNT_ID) return;
 
@@ -423,7 +423,7 @@ async function pollHoldingsOnce() {
       credentials: 'same-origin'
     });
 
-     console.log("eorejri ")
+    
     if (!res.ok) throw new Error('Bad response');
 
     const data = await res.json();
@@ -547,11 +547,12 @@ function renderHoldingsTable(data) {
 }
 
 function loadChart(symbol) {
-  if (tvWidget) {
-    tvWidget.setSymbol(symbol, "D");
-    return;
-  }
+  const container = document.getElementById("tradingview_chart");
 
+  // 🧹 Clear previous widget
+  container.innerHTML = "";
+
+  // 🔁 Create new widget every time
   tvWidget = new TradingView.widget({
     width: "100%",
     height: 500,
@@ -562,7 +563,6 @@ function loadChart(symbol) {
     container_id: "tradingview_chart"
   });
 }
-
 function startPolling() {
   if (pollingTimer) clearInterval(pollingTimer);
   pollingTimer = setInterval(pollHoldingsOnce, pollIntervalMs);
