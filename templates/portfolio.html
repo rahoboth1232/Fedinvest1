@@ -562,7 +562,7 @@ function loadChart(symbol) {
     theme: "light",
     container_id: "tradingview_chart"
   });
-}
+
 function startPolling() {
   if (pollingTimer) clearInterval(pollingTimer);
   pollingTimer = setInterval(pollHoldingsOnce, pollIntervalMs);
