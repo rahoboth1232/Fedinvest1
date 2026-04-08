@@ -53,7 +53,7 @@ from django.http import JsonResponse
 from django.db.models import Q, Sum
 from decimal import Decimal
 from django.db import transaction
-from .utils.prices import get_live_price, get_live_prices
+from .services.price_service import get_stock_price
 from django.db.models import Q
 
 def HomePage(request):
@@ -494,6 +494,7 @@ def holdings_api(request):
         "raw_total": str(net_portfolio_value),
        
     })
+    
 def can_call_any_price_api(seconds=60):
    
     key = "global_price_api_lock"
@@ -503,24 +504,16 @@ def can_call_any_price_api(seconds=60):
 
     cache.set(key, True, seconds)
     return True
-
 def price_api(request, symbol):
-    
-    prices = get_live_prices([symbol])
+    data = get_stock_price(symbol)
 
-    
-    price_data = prices.get(symbol)
+    if not data:
+        return JsonResponse({"error": "Invalid symbol"}, status=400)
 
-    
-    if not price_data or price_data.get("price") is None:
-        return JsonResponse({"error": "Invalid or unsupported symbol"}, status=400)
-
-    
     return JsonResponse({
         "symbol": symbol,
-        "price": float(price_data["price"])
+        "price": float(data["price"])
     })
-
 def get_company_name(symbol):
     cache_key = f"company_name_{symbol}"
     name = cache.get(cache_key)
@@ -610,19 +603,25 @@ def buy_stock(request, account_id):
     )
 
     if request.method == "POST":
-        symbol = request.POST.get("symbol", "").upper()
+
+        # ✅ Clean input
+        symbol = request.POST.get("symbol", "").strip().upper()
         qty = int(request.POST.get("quantity", 0))
+
+        if not symbol:
+            return JsonResponse({"error": "Symbol required"}, status=400)
 
         if qty <= 0:
             return JsonResponse({"error": "Invalid quantity"}, status=400)
 
-        live_data = get_live_prices([symbol]).get(symbol)
+        # ✅ USE CACHE + SERVICE (THIS FIXES EVERYTHING)
+        live_data = get_stock_price(symbol)
 
-        if not live_data or not live_data.get("price"):
+        if not live_data:
             return JsonResponse({"error": "Invalid symbol"}, status=400)
 
         price = Decimal(str(live_data["price"]))
-        percent = live_data.get("percent")
+        percent = live_data.get("percent", 0)
 
         total_cost = price * qty
 
@@ -633,7 +632,9 @@ def buy_stock(request, account_id):
 
         with transaction.atomic():
 
-            
+            # ✅ Deduct balance
+            account.amount -= total_cost
+            account.save()
 
             Transaction.objects.create(
                 user=request.user,
@@ -645,8 +646,6 @@ def buy_stock(request, account_id):
                 amount=total_cost
             )
 
-            # ✅ FIXED STOCK FETCH LOGIC (NO DUPLICATE ROW ISSUE)
-
             stock = Stock.objects.filter(
                 user=request.user,
                 symbol=symbol
@@ -655,7 +654,6 @@ def buy_stock(request, account_id):
             ).first()
 
             if stock:
-                # If old stock had NULL account, attach it now
                 if stock.account is None:
                     stock.account = account
             else:
@@ -668,7 +666,6 @@ def buy_stock(request, account_id):
                     avg_buy_price=Decimal("0"),
                 )
 
-            # ✅ KEEPING YOUR ORIGINAL CALCULATION LOGIC SAME
             total_qty = stock.quantity + qty
             total_cost_all = (stock.avg_buy_price * stock.quantity) + total_cost
 
@@ -679,6 +676,7 @@ def buy_stock(request, account_id):
             stock.last_price_updated = timezone.now()
             stock.save()
 
+        # ✅ Update cache (optional but good)
         cache.set(
             f"stock_live_{symbol}",
             {
@@ -686,7 +684,7 @@ def buy_stock(request, account_id):
                 "percent": percent,
                 "updated": timezone.now().isoformat(),
             },
-            timeout=3600
+            timeout=60
         )
 
         return redirect("portfolio", account_id=account.id)
@@ -694,10 +692,22 @@ def buy_stock(request, account_id):
     return render(request, "buyStock.html", {
         "account_id": account.id
     })
+
+
 def portfolio_view(request, account_id):
     return render(request, "portfolio.html", {
         "account_id": account_id
     })
+
+from decimal import Decimal, InvalidOperation
+from django.shortcuts import get_object_or_404, redirect, render
+from django.contrib import messages
+from django.db.models import Q
+from django.utils import timezone
+
+from .models import Account, Stock, Transaction
+from .services.price_service import get_stock_price
+
 
 def sell_stock(request, account_id, symbol):
 
@@ -723,14 +733,12 @@ def sell_stock(request, account_id, symbol):
     # ✅ Step 3: Handle POST (Sell Logic)
     if request.method == "POST":
 
+        # 🔹 Validate quantity
         try:
             qty = int(request.POST.get("quantity"))
         except (TypeError, ValueError):
             messages.error(request, "Invalid quantity.")
             return redirect("sell_stock", account_id=account.id, symbol=symbol)
-
-        mode = request.POST.get("mode")
-        custom_price = request.POST.get("custom_price")
 
         if qty <= 0:
             messages.error(request, "Quantity must be greater than 0.")
@@ -740,9 +748,19 @@ def sell_stock(request, account_id, symbol):
             messages.error(request, "You cannot sell more than you own.")
             return redirect("sell_stock", account_id=account.id, symbol=symbol)
 
-        # ✅ Determine Sell Price
+        # 🔹 Get mode
+        mode = request.POST.get("mode")
+        custom_price = request.POST.get("custom_price")
+
+        # ✅ Step 4: Determine Sell Price
         if mode == "market":
-            sell_price = Decimal(get_live_price(symbol))
+            live_data = get_stock_price(symbol)
+
+            if not live_data or not live_data.get("price"):
+                messages.error(request, "Live price not available.")
+                return redirect("sell_stock", account_id=account.id, symbol=symbol)
+
+            sell_price = Decimal(str(live_data["price"]))
 
         elif mode == "buyprice":
             sell_price = stock.avg_buy_price
@@ -751,23 +769,31 @@ def sell_stock(request, account_id, symbol):
             if not custom_price:
                 messages.error(request, "Enter custom price.")
                 return redirect("sell_stock", account_id=account.id, symbol=symbol)
-            sell_price = Decimal(custom_price)
+
+            try:
+                sell_price = Decimal(custom_price)
+            except InvalidOperation:
+                messages.error(request, "Invalid custom price.")
+                return redirect("sell_stock", account_id=account.id, symbol=symbol)
 
         else:
             messages.error(request, "Invalid sell mode selected.")
             return redirect("sell_stock", account_id=account.id, symbol=symbol)
 
+        # 🔥 SAFETY CHECK (important)
+        if not isinstance(sell_price, Decimal):
+            sell_price = Decimal(str(sell_price))
+
+        # ✅ Step 5: Calculate total
         total_sell_amount = sell_price * qty
 
-        # ✅ Step 4: Add money back to SAME account
+        # ✅ Step 6: Add money back to SAME account
         account.amount += total_sell_amount
         account.save(update_fields=["amount"])
 
-        # ✅ Step 5: Reduce stock quantity
+        # ✅ Step 7: Reduce stock quantity
         stock.quantity -= qty
 
-        # 🔥 IMPORTANT FIX:
-        # If old stock had NULL account, now assign it properly
         if stock.account is None:
             stock.account = account
 
@@ -776,7 +802,7 @@ def sell_stock(request, account_id, symbol):
         else:
             stock.save()
 
-        # ✅ Step 6: Create Transaction
+        # ✅ Step 8: Create Transaction
         Transaction.objects.create(
             user=request.user,
             account=account,
@@ -788,6 +814,7 @@ def sell_stock(request, account_id, symbol):
             notes="Sold stock"
         )
 
+        # ✅ Success message
         messages.success(
             request,
             f"Sold {qty} shares of {symbol} at ${sell_price}."
@@ -795,11 +822,12 @@ def sell_stock(request, account_id, symbol):
 
         return redirect("portfolio", account_id=account.id)
 
-    # ✅ Step 7: Render Page
+    # ✅ Step 9: Render Page
     return render(request, "sell_stock.html", {
         "stock": stock,
         "account_id": account.id
     })
+
 def gold_view(request):
     user = request.user
     holdings = Gold.objects.filter(user=user).order_by('-date')
