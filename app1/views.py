@@ -495,15 +495,16 @@ def holdings_api(request):
        
     })
     
-def can_call_any_price_api(seconds=60):
+# def can_call_any_price_api(seconds=60):
    
-    key = "global_price_api_lock"
+#     key = "global_price_api_lock"
 
-    if cache.get(key):
-        return False
+#     if cache.get(key):
+#         return False
 
-    cache.set(key, True, seconds)
-    return True
+#     cache.set(key, True, seconds)
+#     return True
+
 def price_api(request, symbol):
     data = get_stock_price(symbol)
 

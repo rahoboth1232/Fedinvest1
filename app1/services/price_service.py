@@ -2,7 +2,7 @@ from django.core.cache import cache
 from decimal import Decimal
 from ..utils.prices import get_live_price
 
-CACHE_TTL = 30
+CACHE_TTL = 5
 
 
 def get_stock_price(symbol):
