@@ -510,21 +510,29 @@ def price_api(request, symbol):
     try:
         data = get_stock_price(symbol)
 
-        if not data or not data.get("price"):
-            return JsonResponse({"error": "No price"}, status=400)
+        if not data:
+            return JsonResponse({
+                "symbol": symbol,
+                "price": 0
+            })
+
+        price = data.get("price")
+
+        # 🔥 FINAL SAFETY
+        if isinstance(price, dict):
+            price = price.get("price")
 
         return JsonResponse({
             "symbol": symbol,
-            "price": float(data["price"])
+            "price": float(price) if price else 0
         })
 
     except Exception as e:
         print("🔥 PRICE API ERROR:", e)
-
-        # ✅ ALWAYS return JSON (not HTML)
         return JsonResponse({
-            "error": "Server error"
-        }, status=500)
+            "symbol": symbol,
+            "price": 0
+        })
 
 
 def get_company_name(symbol):
