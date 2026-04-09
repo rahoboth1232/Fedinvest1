@@ -465,6 +465,12 @@ function renderHoldingsTable(data) {
     return;
   }
 
+holdings.sort((a, b) => {
+  const symA = (a.symbol || '').toUpperCase();
+  const symB = (b.symbol || '').toUpperCase();
+  return symA.localeCompare(symB);
+});
+
   holdings.forEach(h => {
 
     const symbol = h.symbol || '—';

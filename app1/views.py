@@ -469,9 +469,7 @@ def holdings_api(request):
         .filter(user=user, account_id=account_id)
         .aggregate(total=Sum("amount"))
     )['total'] or Decimal("0")
-    print(previous_portfolio_total,"ashuu")
-    print(cash_amount,"kasdkj")
-
+    
     net_portfolio_value = (
         cash_amount - previous_portfolio_total
         if portfolio_total > 0 else cash_amount
@@ -694,7 +692,7 @@ def buy_stock(request, account_id):
             timeout=60
         )
 
-        return redirect("portfolio", account_id=account.id)
+       
 
     return render(request, "buyStock.html", {
         "account_id": account.id
