@@ -622,6 +622,9 @@ def buy_stock(request, account_id):
         id=account_id,
         user=request.user
     )
+    
+    symbol_from_url = request.GET.get("symbol", "")
+    
 
     if request.method == "POST":
 
@@ -711,7 +714,9 @@ def buy_stock(request, account_id):
        
 
     return render(request, "buyStock.html", {
-        "account_id": account.id
+        "account_id": account.id,
+         "symbol": symbol_from_url
+        
     })
 
 

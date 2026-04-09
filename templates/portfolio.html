@@ -537,9 +537,9 @@ function renderHoldingsTable(data) {
       <td>${formatMoney(live)}</td>
       <td>${formatMoney(value)}</td>
       <td>
-        <a class="btn" href="/buy/${ACCOUNT_ID}/" style="background:#06b6d4">
-          Buy
-        </a>
+       <a class="btn" href="/buy/${ACCOUNT_ID}/?symbol=${encodeURIComponent(symbol)}" style="background:#06b6d4">
+  Buy
+</a>
       </td>
       <td>
         <a class="btn"

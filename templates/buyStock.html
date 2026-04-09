@@ -900,6 +900,7 @@ body {
                     type="text" 
                     id="symbol"
                     name="symbol" 
+                    value="{{symbol}}"
                     placeholder="Enter ticker (e.g., AAPL, TSLA)" 
                     required
                     autocomplete="off"
@@ -1235,6 +1236,11 @@ document.getElementById('buyStockForm').addEventListener('submit', () => {
    OPTIONAL: PRELOAD POPULAR STOCKS
 ========================= */
 ["AAPL", "TSLA", "GOOG"].forEach(fetchStockPrice);
+window.addEventListener('load', () => {
+    if (symbolInput.value) {
+        schedulePreviewUpdate();
+    }
+});
 
 
 </script>
