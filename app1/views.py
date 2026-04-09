@@ -504,17 +504,15 @@ def holdings_api(request):
 #     return True
 
 def price_api(request, symbol):
-    try:
-        data = get_stock_price(symbol)
+    data = get_stock_price(symbol)
 
-        if not data or not data.get("price"):
-            return JsonResponse({"error": "Invalid symbol"}, status=400)
+    if not data or not data.get("price"):
+        return JsonResponse({"error": "No price"}, status=400)
 
-        return JsonResponse({
-            "symbol": symbol,
-            "price": float(data["price"])
-        })
-
+    return JsonResponse({
+        "symbol": symbol,
+        "price": float(data["price"])
+    })
     except Exception as e:
         print("PRICE API ERROR:", str(e))  # logs error
         return JsonResponse({"error": "Server error"}, status=500)
@@ -559,7 +557,7 @@ def batch_update_stock_prices(stocks):
             not cached
             or cached.get("percent") is None
             or not s.last_price_updated
-            or timezone.now() - s.last_price_updated > timedelta(seconds=4)
+            or timezone.now() - s.last_price_updated > timedelta(seconds=30)
         )
 
         if needs_fetch:
