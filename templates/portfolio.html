@@ -402,7 +402,8 @@
     console.log(ACCOUNT_ID)
 </script>
  <script>
-let previousPrices = {};
+
+let previousData = null;
 let pollIntervalMs = 5000;
 let candleIntervalSec = 60;
 let pollingTimer = null;
@@ -410,209 +411,267 @@ let paused = false;
 let currentCandle = null;
 let candles = [];
 let tvWidget;
+let currentSymbol = null;
 
-
-// ✅ Use account_id from Django URL
+/* =========================
+   API POLLING
+========================= */
 async function pollHoldingsOnce() {
-  
-  if (paused) return;
-  if (!ACCOUNT_ID) return;
+  if (paused || !ACCOUNT_ID) return;
 
   try {
     const res = await fetch(`/api/holdings/?account_id=${ACCOUNT_ID}`, {
       credentials: 'same-origin'
     });
 
-    
     if (!res.ok) throw new Error('Bad response');
 
     const data = await res.json();
-    console.log(data);
+
+    // ✅ Skip update if nothing changed
+    if (JSON.stringify(data) === JSON.stringify(previousData)) return;
+
+    previousData = data;
 
     renderHoldingsTable(data);
+    updatePortfolioStats(data);
 
     const portfolio_total = Number(data.portfolio_total) || 0;
-    const raw_total = Number(data.raw_total) || 0;
-
-    document.getElementById('portfolio-total').textContent = formatMoney(portfolio_total);
-    document.getElementById('raw_total').textContent = formatMoney(raw_total);
-    document.getElementById('holdings-count').textContent = (data.holdings || []).length;
-
-    const now = new Date();
-    addSampleToCandle(portfolio_total, now);
+    addSampleToCandle(portfolio_total, new Date());
 
   } catch (err) {
     console.error('Holdings poll error', err);
   }
 }
-pollHoldingsOnce()
-function formatMoney(num) {
-  const n = Number(num) || 0;
-  return '$' + n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 });
-}
 
-function renderHoldingsTable(data) {
-  const tbody = document.getElementById('holdings-body');
-  tbody.innerHTML = '';
-
-  const holdings = (data && data.holdings) ? data.holdings : [];
-  let totalDailyChangePercent = 0;
-
-  if (holdings.length === 0) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = '<td colspan="8" style="text-align:center;color:#6b7280;padding:18px">No holdings</td>';
-    tbody.appendChild(tr);
-    return;
-  }
-
-holdings.sort((a, b) => {
-  const symA = (a.symbol || '').toUpperCase();
-  const symB = (b.symbol || '').toUpperCase();
-  return symA.localeCompare(symB);
-});
-
-  holdings.forEach(h => {
-
-    const symbol = h.symbol || '—';
-    const company = h.company_name || '—';
-    const qty = h.quantity || 0;
-    const live = Number(h.current_price) || 0;
-    const value = Number(h.total_value) || (qty * live);
-    const change_percents = Number(h.change_percent) || 0;
-
-    totalDailyChangePercent += change_percents;
-
-    const changeColor = change_percents < 0 ? "red" : "green";
-    const tr = document.createElement('tr');
-
-    tr.innerHTML = `
-      <td>
-        <a href="javascript:void(0)" class="symbol" data-symbol="${symbol}">
-          <span>${symbol}</span>
-          <span class="hover-hint" style="display:none;">Click to view chart</span>
-          <span class="stxt">view</span>
-        </a>
-      </td>
-      <td class="price">${company}</td>
-      <td style="color:${changeColor}; font-weight:600;">
-        ${change_percents.toFixed(2)}%
-      </td>
-      <td>${qty}</td>
-      <td class="price">${formatMoney(live)}</td>
-      <td class="price">${formatMoney(value)}</td>
-     <td>
-  <a class="btn"
-     href="/buy/${ACCOUNT_ID}/"
-     style="background:#06b6d4">
-     Buy
-  </a>
-</td>
-<td>
-  <a class="btn"
-     href="/sell/${ACCOUNT_ID}/${encodeURIComponent(symbol)}/"
-     style="background:#ef4444">
-     Sell
-  </a>
-</td>
-`;
-
-    const symbolLink = tr.querySelector(".symbol");
-    symbolLink.addEventListener("click", function () {
-      const selectedSymbol = this.dataset.symbol;
-      loadChart(selectedSymbol);
-      document.getElementById("stock-chart")
-        .scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-
-    let hoverTimer;
-    symbolLink.addEventListener("mouseenter", () => {
-      hoverTimer = setTimeout(() => {
-        const hint = symbolLink.querySelector(".hover-hint");
-        if (hint) hint.style.display = "block";
-      }, 1500);
-    });
-
-    symbolLink.addEventListener("mouseleave", () => {
-      clearTimeout(hoverTimer);
-      const hint = symbolLink.querySelector(".hover-hint");
-      if (hint) hint.style.display = "none";
-    });
-
-    tbody.appendChild(tr);
-  });
-
-  const totalDailyChangeEl = document.getElementById("total-daily-change");
-  if (totalDailyChangeEl) {
-    const totalColor = totalDailyChangePercent < 0 ? "red" : "green";
-    totalDailyChangeEl.innerHTML = `
-      <span style="color:${totalColor}">
-        ${totalDailyChangePercent.toFixed(2)}%
-      </span>
-    `;
-  }
-}
-
-function loadChart(symbol) {
-  const container = document.getElementById("tradingview_chart");
-
-  // 🧹 Clear previous widget
-  container.innerHTML = "";
-
-  // 🔁 Create new widget every time
-  tvWidget = new TradingView.widget({
-    width: "100%",
-    height: 500,
-    symbol: symbol,
-    interval: "D",
-    timezone: "Etc/UTC",
-    theme: "light",
-    container_id: "tradingview_chart"
-  });
-
+/* =========================
+   POLLING CONTROL
+========================= */
 function startPolling() {
-  if (pollingTimer) clearInterval(pollingTimer);
+  stopPolling();
   pollingTimer = setInterval(pollHoldingsOnce, pollIntervalMs);
   pollHoldingsOnce();
 }
 
 function stopPolling() {
-  if (pollingTimer) clearInterval(pollingTimer);
-  pollingTimer = null;
+  if (pollingTimer) {
+    clearInterval(pollingTimer);
+    pollingTimer = null;
+  }
 }
 
-document.addEventListener('DOMContentLoaded', function(){
+/* =========================
+   FORMATTERS
+========================= */
+function formatMoney(num) {
+  const n = Number(num) || 0;
+  return '$' + n.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
 
-  document.getElementById('candle-interval').addEventListener('change', function(e){
-    candleIntervalSec = Number(e.target.value);
-    finalizeCandle();
+/* =========================
+   PORTFOLIO STATS
+========================= */
+function updatePortfolioStats(data) {
+  const portfolioEl = document.getElementById('portfolio-total');
+  const rawEl = document.getElementById('raw_total');
+  const countEl = document.getElementById('holdings-count');
+
+  if (portfolioEl) portfolioEl.textContent = formatMoney(data.portfolio_total);
+  if (rawEl) rawEl.textContent = formatMoney(data.raw_total);
+  if (countEl) countEl.textContent = (data.holdings || []).length;
+}
+
+/* =========================
+   TABLE RENDERING
+========================= */
+function renderHoldingsTable(data) {
+  const tbody = document.getElementById('holdings-body');
+  if (!tbody) return; // ✅ prevents your error
+
+  const holdings = (data && data.holdings) || [];
+
+  if (!holdings.length) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align:center;color:#6b7280;padding:18px">
+          No holdings
+        </td>
+      </tr>`;
+    return;
+  }
+
+  holdings.sort((a, b) =>
+    (a.symbol || '').localeCompare(b.symbol || '')
+  );
+
+  let totalDailyChangePercent = 0;
+  const fragment = document.createDocumentFragment();
+
+  holdings.forEach(h => {
+    const symbol = h.symbol || '—';
+    const company = h.company_name || '—';
+    const qty = h.quantity || 0;
+    const live = Number(h.current_price) || 0;
+    const value = Number(h.total_value) || (qty * live);
+    const change = Number(h.change_percent) || 0;
+
+    totalDailyChangePercent += change;
+
+    const tr = document.createElement('tr');
+
+    tr.innerHTML = `
+      <td>
+        <a href="#" class="symbol" data-symbol="${symbol}">
+          <span>${symbol}</span>
+          <span class="stxt">view</span>
+        </a>
+      </td>
+      <td>${company}</td>
+      <td style="color:${change < 0 ? "red" : "green"};font-weight:600;">
+        ${change.toFixed(2)}%
+      </td>
+      <td>${qty}</td>
+      <td>${formatMoney(live)}</td>
+      <td>${formatMoney(value)}</td>
+      <td>
+        <a class="btn" href="/buy/${ACCOUNT_ID}/" style="background:#06b6d4">
+          Buy
+        </a>
+      </td>
+      <td>
+        <a class="btn"
+           href="/sell/${ACCOUNT_ID}/${encodeURIComponent(symbol)}/"
+           style="background:#ef4444">
+          Sell
+        </a>
+      </td>
+    `;
+
+    fragment.appendChild(tr);
   });
 
-  document.getElementById('poll-interval').addEventListener('change', function(e){
-    pollIntervalMs = Number(e.target.value);
-    startPolling();
-  });
+  tbody.innerHTML = "";
+  tbody.appendChild(fragment);
 
-  document.getElementById('pauseBtn').addEventListener('click', function(e){
-    paused = !paused;
-    e.target.textContent = paused ? 'Resume' : 'Pause';
+  updateTotalChange(totalDailyChangePercent);
+}
+
+/* =========================
+   TOTAL CHANGE
+========================= */
+function updateTotalChange(total) {
+  const el = document.getElementById("total-daily-change");
+  if (!el) return;
+
+  el.innerHTML = `
+    <span style="color:${total < 0 ? "red" : "green"}">
+      ${total.toFixed(2)}%
+    </span>
+  `;
+}
+
+/* =========================
+   CHART LOADING
+========================= */
+function loadChart(symbol) {
+  if (symbol === currentSymbol) return;
+
+  currentSymbol = symbol;
+
+  const container = document.getElementById("tradingview_chart");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  tvWidget = new TradingView.widget({
+    width: "100%",
+    height: 500,
+    symbol,
+    interval: "D",
+    timezone: "Etc/UTC",
+    theme: "light",
+    container_id: "tradingview_chart"
   });
+}
+
+/* =========================
+   INIT (SAFE DOM LOAD)
+========================= */
+document.addEventListener('DOMContentLoaded', function () {
+
+  // ✅ SAFE EVENT DELEGATION (fixes your error)
+  const tbody = document.getElementById('holdings-body');
+  if (tbody) {
+    tbody.addEventListener('click', function (e) {
+      const link = e.target.closest('.symbol');
+      if (!link) return;
+
+      e.preventDefault();
+
+      const symbol = link.dataset.symbol;
+      loadChart(symbol);
+
+      const chartEl = document.getElementById("stock-chart");
+      if (chartEl) {
+        chartEl.scrollIntoView({ behavior: "smooth" });
+      }
+    });
+  }
+
+  const candleInput = document.getElementById('candle-interval');
+  if (candleInput) {
+    candleInput.addEventListener('change', function (e) {
+      candleIntervalSec = Number(e.target.value);
+      finalizeCandle();
+    });
+  }
+
+  const pollInput = document.getElementById('poll-interval');
+  if (pollInput) {
+    pollInput.addEventListener('change', function (e) {
+      pollIntervalMs = Number(e.target.value);
+      startPolling();
+    });
+  }
+
+  const pauseBtn = document.getElementById('pauseBtn');
+  if (pauseBtn) {
+    pauseBtn.addEventListener('click', function (e) {
+      paused = !paused;
+      e.target.textContent = paused ? 'Resume' : 'Pause';
+    });
+  }
 
   startPolling();
 });
 
-window.addEventListener('resize', function(){
-  chart.applyOptions({ width: document.getElementById('chart-container').clientWidth });
+/* =========================
+   RESIZE HANDLER
+========================= */
+window.addEventListener('resize', function () {
+  if (typeof chart !== "undefined") {
+    const el = document.getElementById('chart-container');
+    if (el) {
+      chart.applyOptions({ width: el.clientWidth });
+    }
+  }
 });
 
-setInterval(function(){
+setInterval(function () {
   const nowSec = Math.floor(Date.now() / 1000);
+
   if (currentCandle) {
-    const currentBucket = Math.floor(nowSec / candleIntervalSec) * candleIntervalSec;
+    const currentBucket =
+      Math.floor(nowSec / candleIntervalSec) * candleIntervalSec;
+
     if (currentCandle.time < currentBucket) {
       finalizeCandle();
     }
   }
 }, 1000);
-}
+
 </script></body>
 </html>
