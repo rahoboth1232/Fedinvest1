@@ -1095,7 +1095,9 @@ body {
 
 
 <script src="{% static 'js/main.js' %}"></script>
+
 <script>
+  
 const symbolInput = document.getElementById('symbol');
 const quantityInput = document.getElementById('quantity');
 const stockPreview = document.getElementById('stockPreview');
@@ -1103,36 +1105,72 @@ const currentPriceEl = document.getElementById('currentPrice');
 const stockNameEl = document.getElementById('stockName');
 const previewValue = document.getElementById('previewValue');
 const submitBtn = document.getElementById('submitBtn');
-const stockCardsContainer = document.getElementById('stockCards');
 
 let fetchTimeout = null;
 
+/* =========================
+   🚀 FRONTEND CACHE SYSTEM
+========================= */
+const priceCache = {};
+const CACHE_TTL = 30000; // 30 seconds
+let currentRequestId = 0;
+
+/* =========================
+   INPUT LISTENERS
+========================= */
 symbolInput.addEventListener('input', () => {
     symbolInput.value = symbolInput.value.toUpperCase();
     schedulePreviewUpdate();
 });
+
 quantityInput.addEventListener('input', schedulePreviewUpdate);
 
+/* =========================
+   DEBOUNCE (PREVENT SPAM)
+========================= */
 function schedulePreviewUpdate() {
     clearTimeout(fetchTimeout);
-    fetchTimeout = setTimeout(updatePreview, 400);
+    fetchTimeout = setTimeout(updatePreview, 600); // 🔥 increased delay
 }
+
 
 async function fetchStockPrice(symbol) {
     try {
         const response = await fetch(`/api/price/${symbol}/`);
-        if (!response.ok) return null;
-        return await response.json();
-    } catch {
+
+        if (!response.ok) {
+            console.error("API error:", response.status);
+            return null;
+        }
+
+        const text = await response.text();
+
+        // 🔥 Prevent crash if HTML returned
+        if (text.startsWith("<")) {
+            console.error("HTML returned instead of JSON");
+            return null;
+        }
+
+        return JSON.parse(text);
+
+    } catch (err) {
+        console.error("Fetch error:", err);
         return null;
     }
 }
 
+
+/* =========================
+   UPDATE PREVIEW (SAFE)
+========================= */
 async function updatePreview() {
+    const requestId = ++currentRequestId;
+
     const symbol = symbolInput.value.trim();
     const qty = Number(quantityInput.value);
 
-    if (!symbol || !qty || qty < 1) {
+    // ✅ Prevent invalid input spam
+    if (!symbol || symbol.length < 2 || !qty || qty < 1) {
         stockPreview.classList.remove('active');
         submitBtn.disabled = false;
         return;
@@ -1140,11 +1178,16 @@ async function updatePreview() {
 
     stockPreview.classList.add('active');
     submitBtn.disabled = true;
+
     currentPriceEl.innerHTML = '<span class="loading-spinner"></span>';
     stockNameEl.textContent = '—';
     previewValue.textContent = '…';
 
     const data = await fetchStockPrice(symbol);
+
+    // ❗ Ignore old responses
+    if (requestId !== currentRequestId) return;
+
     if (!data || !data.price) {
         currentPriceEl.textContent = 'Not Found';
         stockNameEl.textContent = symbol;
@@ -1154,13 +1197,19 @@ async function updatePreview() {
     }
 
     const price = Number(data.price);
+
     currentPriceEl.textContent = `$${price.toFixed(2)}`;
     stockNameEl.textContent = data.symbol || symbol;
-    previewValue.textContent = `$${(price * qty).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+    previewValue.textContent = `$${(price * qty).toLocaleString('en-IN', {
+        minimumFractionDigits: 2
+    })}`;
 
     submitBtn.disabled = false;
 }
 
+/* =========================
+   QUICK BUY BUTTON
+========================= */
 function quickBuy(symbol) {
     symbolInput.value = symbol.toUpperCase();
     quantityInput.value = 1;
@@ -1169,81 +1218,9 @@ function quickBuy(symbol) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function generateChartData(currentPrice, isPositive) {
-    const points = 20;
-    const data = [];
-    let price = currentPrice * (isPositive ? 0.97 : 1.03);
-    
-    for (let i = 0; i < points; i++) {
-        const variation = (Math.random() - 0.5) * currentPrice * 0.02;
-        const trend = isPositive ? (i / points) * currentPrice * 0.03 : -(i / points) * currentPrice * 0.03;
-        price = price + variation + (trend / points);
-        data.push(price);
-    }
-    
-    return data;
-}
-
-function drawMiniChart(canvas, data, isPositive) {
-    const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = canvas.height;
-    
-    ctx.clearRect(0, 0, width, height);
-    
-    const max = Math.max(...data);
-    const min = Math.min(...data);
-    const range = max - min;
-    
-    const stepX = width / (data.length - 1);
-    
-    // Draw gradient fill
-    const gradient = ctx.createLinearGradient(0, 0, 0, height);
-    if (isPositive) {
-        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
-        gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
-    } else {
-        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.3)');
-        gradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
-    }
-    
-    ctx.beginPath();
-    ctx.moveTo(0, height);
-    
-    data.forEach((value, i) => {
-        const x = i * stepX;
-        const y = height - ((value - min) / range) * height;
-        if (i === 0) {
-            ctx.lineTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    ctx.lineTo(width, height);
-    ctx.closePath();
-    ctx.fillStyle = gradient;
-    ctx.fill();
-    
-    // Draw line
-    ctx.beginPath();
-    data.forEach((value, i) => {
-        const x = i * stepX;
-        const y = height - ((value - min) / range) * height;
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-    
-    ctx.strokeStyle = isPositive ? '#10b981' : '#ef4444';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-}
-
-
-
+/* =========================
+   FORM EVENTS
+========================= */
 document.getElementById('buyStockForm').addEventListener('reset', () => {
     stockPreview.classList.remove('active');
     submitBtn.disabled = false;
@@ -1253,6 +1230,12 @@ document.getElementById('buyStockForm').addEventListener('submit', () => {
     submitBtn.innerHTML = '⏳ Processing Trade...';
     submitBtn.disabled = true;
 });
+
+/* =========================
+   OPTIONAL: PRELOAD POPULAR STOCKS
+========================= */
+["AAPL", "TSLA", "GOOG"].forEach(fetchStockPrice);
+
 
 </script>
 
