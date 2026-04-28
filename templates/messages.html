@@ -313,7 +313,7 @@ a{
                         {% if box == 'inbox' %}
                             <td class="msg-title">{{ msg.title }}</td>
                             <td class="msg-body">{{ msg.body }}</td>
-                            <td class="msg-date">{{ msg.date }}</td>
+                            <td class="msg-date">{{ msg.date.date }}</td>
                         {% else %}
                             <td class="msg-to">{{ msg.to }}</td>
                             <td class="msg-subject">{{ msg.subject }}</td>
