@@ -132,7 +132,7 @@ th{color:var(--muted);font-weight:600;font-size:13px}
             justify-content: center;
             align-items: center;
             text-align: center;
-            z-index: 9999;
+            z-index: 10001;
             box-shadow: 0 10px 40px rgba(0,0,0,0.25);
         }
 
@@ -150,7 +150,7 @@ th{color:var(--muted);font-weight:600;font-size:13px}
             position: fixed;
             inset: 0;
             background: rgba(0,0,0,0.40);
-            z-index: 9998;
+            z-index: 10000;
             display: none;
         }
 
@@ -173,6 +173,60 @@ th{color:var(--muted);font-weight:600;font-size:13px}
         .alert-ok:hover {
             background: #0b3b70;
         }
+
+        .modal {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  padding: 20px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 40%;
+  height: 80%;
+  background-color: rgb(240, 240, 240);
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+}
+
+.modal-contents {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 15px;
+}
+
+.modal-content {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: calc(100% - 55px);
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.close {
+  position: absolute;
+  top: 20px;
+  right: 15px;
+  color: white;
+  font-size: 40px;
+  cursor: pointer;
+}
+
+.btn{
+  
+            padding: 10px 18px;
+            background: #014997;
+            color: #fff;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+  
+}
 
   </style>
 </head>
@@ -310,44 +364,62 @@ th{color:var(--muted);font-weight:600;font-size:13px}
           <table>
             <thead>
               <tr>
-                <th>Document</th>
-                <th>Date</th>
-                <th>Type</th>
-                <th class="actions-col">Action</th>
-              </tr>
+            <th>Document</th>
+    <th>Date</th>
+    <th>Type</th>
+    <th>Preview</th>
+    <th>Actions</th>
+      </tr>
+
             </thead>
-            <tbody>
-              {% for d in docs %}
-                <tr>
-                  <td class="doc-title">
-                    <div class="doc-meta">
-                      <div class="doc-icon">
-                        <i class="ri-file-paper-line"></i>
-                      </div>
-                      <div>
-                        <div class="title">{{ d.title }}</div>
-                        <div class="muted">{{ d.slug }}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td class="muted">{{ d.date|date:"M d, Y" }}</td>
-                  <td><i class="ri-file-pdf-2-line"></i>{{ d.type }}</td>
-                  <td class="actions-col">
-                  
-                    <button class="action view btn" id="sends">
-                     <i class="ri-mail-send-line"></i>  Send to Email
-                    </button>
+          <tbody>
+  {% for d in docs %}
+    <tr>
+      <td class="doc-title">
+        <div class="doc-meta">
+          <div class="doc-icon">
+            <i class="ri-file-paper-line"></i>
+          </div>
+          <div>
+            <div class="title">{{ d.title }}</div>
+            <div class="muted">{{ d.slug }}</div>
+          </div>
+        </div>
+      </td>
 
+      <td class="muted">{{ d.date|date:"M d, Y" }}</td>
 
-                   
-                  </td>
-                </tr>
-              {% empty %}
-                <tr>
-                  <td colspan="4" class="empty">No documents available.</td>
-                </tr>
-              {% endfor %}
-            </tbody>
+      <td>
+        <i class="ri-file-pdf-2-line"></i> {{ d.type }}
+      </td>
+
+      <!-- 🔥 NEW PREVIEW COLUMN -->
+     <td class="actions-col">
+{% if d.file %}
+  {% if d.type|lower == "png" or d.type|lower == "jpeg" or d.type|lower == "jpg" %}
+    <button 
+      class="action view preview-btn",
+       data-image="{{ d.file.url }}"
+      >
+      View
+    </button>
+  {% else %}
+    <a href="{{ d.file.url }}" target="_blank" class="btn">Open</a>
+  {% endif %}
+{% endif %}
+</td>
+      <td class="actions-col">
+        <button class="action view btn">
+          <i class="ri-mail-send-line"></i> Send to Email
+        </button>
+      </td>
+    </tr>
+  {% empty %}
+    <tr>
+      <td colspan="5" class="empty">No documents available.</td>
+    </tr>
+  {% endfor %}
+</tbody>
           </table>
         </div>
       </section>
@@ -363,10 +435,51 @@ th{color:var(--muted);font-weight:600;font-size:13px}
     <footer class="footer">
       <div>© {{ now.year }} FED Invest</div>
     </footer>
-  </div>
+<div id="imageModal" class="modal">
+   <div class="modal-contents">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="modalImage">
+  <button  class="btn" id="send-to-phone-btn">Send to Phone</button>
+</div>
+</div>
   <script>
-document.getElementById("sends").addEventListener("click", function () {
-    showAlert("Request sent successfully 🎉");
+document.addEventListener("DOMContentLoaded", function () {
+
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("modalImage");
+  const closeBtn = document.querySelector(".close");
+
+  // attach click to all View buttons
+  document.querySelectorAll(".preview-btn").forEach(btn => {
+    btn.addEventListener("click", function () {
+        console.log("CLICK WORKING"); 
+      const imgUrl = this.getAttribute("data-image");
+
+      if (imgUrl) {
+        modal.style.display = "block";
+        modalImg.src = imgUrl;
+      }
+    });
+  });
+
+  // close button
+  closeBtn.addEventListener("click", function () {
+    modal.style.display = "none";
+  });
+
+  // click outside image to close
+  modal.addEventListener("click", function (e) {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+
+});
+
+
+
+document.getElementById("send-to-phone-btn").addEventListener("click", function () {
+    showAlert("Sent successfully 🎉");
 });
 
 function showAlert(msg) {
@@ -380,6 +493,9 @@ function closeAlert() {
     document.querySelector(".alert-overlay").classList.remove("show");
     window.location.href = "{% url 'legal_documents' %}";
 }
+
+
+
 </script>
 <script src="{% static 'js/main.js' %}"></script>
 </body>
