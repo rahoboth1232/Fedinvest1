@@ -75,6 +75,14 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 WSGI_APPLICATION = 'registration.wsgi.application'
 
 
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://ustreasuryinvestment.com",
+    "https://www.ustreasuryinvestment.com",
+]
+
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 

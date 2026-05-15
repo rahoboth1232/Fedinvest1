@@ -966,14 +966,18 @@ def calendarPage(request):
 
 def legal_documents_view(request):
     query = request.GET.get("q", "").strip()
-    docs = LegalDocument.objects.all()
+    docs = LegalDocument.objects.filter(user=request.user)
+    print('docs',docs)
     if query:
         docs = docs.filter(title__icontains=query)
+        print('docs',docs)
 
     context = {
         "docs": docs,
+
         "query": query,
     }
+    print('context',context)
     return render(request, "legal_documents.html", context)
 
 
