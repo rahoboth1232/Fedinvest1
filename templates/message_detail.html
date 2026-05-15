@@ -1,142 +1,173 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>{{ message.title }}</title>
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>{{ message.title }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
-  <style>
- 
-.message-container {
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
-    background: #f8fafc;
-    min-height: 100vh;
-    font-family: 'Poppins', sans-serif;
-    position: relative;
-    z-index: 1;
-}
+    <style>
+        .message-container {
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+            background: #f8fafc;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
 
-.message-container::before {
-    content: "";
-    position: absolute;
-    top: 60%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 40vw;
-    height: 40vh;
-    background-image: url("{% static 'images/treasurylogo.png' %}");
-    background-position: center;
-    background-repeat: no-repeat;
-    background-size: contain;
-      /* opacity: 1200%;/ */
-    z-index: 1;
-    pointer-events: none;
-}
+            z-index: 1;
+        }
 
+        /* .message-container::before {
+            content: "";
+            position: absolute;
+            top: 60%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vh;
+            background-image: url("{% static 'images/treasurylogo.png' %}");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+            opacity: 0.15;
+            z-index: -1;
+            pointer-events: none;
+        } */
 .message-card {
-    background: rgba(255, 255, 255, 0.85);
+    position: relative;
+    overflow: hidden;
+
+    background: rgba(255, 255, 255, 0.9);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+
     width: 80%;
     max-width: 900px;
     padding: 35px;
     border-radius: 18px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.07);
+
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
     border: 1px solid rgba(226, 232, 240, 0.8);
+
+    z-index: 1;
 }
 
-.message-header h2 {
-    font-size: 26px;
-    font-weight: 600;
-    color: #0f172a;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+.message-card::before {
+    content: "";
+    position: absolute;
+
+    top: 65%;
+    left: 50%; /* move image to right */
+
+    transform: translate(-50%, -50%);
+
+    width: 400px;
+    height: 400px;
+
+    background-image: url("{% static 'images/treasurylogo.png' %}");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+
+    opacity: 0.08;
+
+    pointer-events: none;
+    z-index: -1;
 }
 
-.message-header i {
-    color: #0ea5e9;
-    font-size: 28px;
-}
+        .message-header h2 {
+            font-size: 26px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.message-meta {
-    margin-top: 10px;
-    color: #475569;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+        .message-header i {
+            color: #0ea5e9;
+            font-size: 28px;
+        }
 
-.message-meta i {
-    color: #64748b;
-}
+        .message-meta {
+            margin-top: 10px;
+            color: #475569;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-.divider {
-    margin: 25px 0;
-    border: none;
-    border-top: 1px solid #e2e8f0;
-}
+        .message-meta i {
+            color: #64748b;
+        }
 
-.message-body {
-    font-size: 16px;
-   line-height: 40px;
-    color: #334155;
-   
-    margin-bottom: 30px;
-}
+        .divider {
+            margin: 25px 0;
+            border: none;
+            border-top: 1px solid #e2e8f0;
+        }
 
-.back-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none;
-    background: #0ea5e9;
-    padding: 10px 20px;
-    border-radius: 10px;
-    color: white;
-    font-weight: 500;
-    transition: 0.3s;
-}
+        .message-body {
+            font-size: 16px;
+            line-height: 40px;
+            color: #334155;
 
-.back-link:hover {
-    background: #0284c7;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
+            margin-bottom: 30px;
+        }
 
-  </style>
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            background: #0ea5e9;
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .back-link:hover {
+            background: #0284c7;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+    </style>
 </head>
+
 <body>
- <div class="message-container">
+    <div class="message-container">
 
-    <div class="message-card">
+        <div class="message-card">
 
-        <!-- Header Section -->
-        <div class="message-header">
-            <h2><i class="ri-mail-open-line"></i> {{ message.title }}</h2>
-            <p class="message-meta">
-                <i class="ri-calendar-line"></i>
-                Sent on {{ message.date|date:"F d, Y" }}
-            </p>
+            <!-- Header Section -->
+            <div class="message-header">
+                <h2><i class="ri-mail-open-line"></i> {{ message.title }}</h2>
+                <p class="message-meta">
+                    <i class="ri-calendar-line"></i>
+                    Sent on {{ message.date|date:"F d, Y" }}
+                </p>
+            </div>
+
+            <hr class="divider">
+
+            <!-- Body -->
+            <div class="message-body">
+                {{ message.body|linebreaks }}
+            </div>
+
+            <!-- Back Button -->
+            <a href="{% url 'messages' %}" class="back-link">
+                <i class="ri-arrow-left-line"></i> Back to Inbox
+            </a>
+
         </div>
-
-        <hr class="divider">
-
-        <!-- Body -->
-        <div class="message-body">
-            {{ message.body|linebreaks }}
-        </div>
-
-        <!-- Back Button -->
-        <a href="{% url 'messages' %}" class="back-link">
-            <i class="ri-arrow-left-line"></i> Back to Inbox
-        </a>
 
     </div>
-
-</div>
 </body>
+
 </html>
