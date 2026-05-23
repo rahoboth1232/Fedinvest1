@@ -315,21 +315,37 @@ def message_list(request):
     box = request.GET.get("box", "inbox")  # default to inbox
     accounts = Account.objects.filter(user=request.user)
     if box == "sent":
-        # Show sent messages from AdminCompose
-        messages = AdminCompose.objects.filter(user=request.user).order_by('-created_at')
+        # Show only messages composed by the user, NOT admin panel messages
+        messages = AdminCompose.objects.filter(user=request.user, source="user").order_by('-created_at')
     else:
         # Show inbox messages from Message
         messages = Message.objects.filter(user=request.user).order_by('-date')
 
     return render(request, "messages.html", {"messages": messages, "box": box , 'accounts': accounts,})
-    return render(request, 'messages.html', {'messages': messages})
+
 def message_detail(request, pk):
-    message = get_object_or_404(Message, pk=pk, user=request.user)
-    # mark as read
-    if not message.is_read:
-        message.is_read = True
-        message.save()
-    return render(request, 'message_detail.html', {'message': message})
+    msg_type = request.GET.get("type", "inbox")
+
+    if msg_type == "sent":
+        # Sent message from AdminCompose
+        compose_msg = get_object_or_404(AdminCompose, pk=pk, user=request.user, source="user")
+        if not compose_msg.is_read:
+            compose_msg.is_read = True
+            compose_msg.save()
+        return render(request, 'message_detail.html', {
+            'message': compose_msg,
+            'is_sent': True,
+        })
+    else:
+        # Inbox message from Message model
+        message = get_object_or_404(Message, pk=pk, user=request.user)
+        if not message.is_read:
+            message.is_read = True
+            message.save()
+        return render(request, 'message_detail.html', {
+            'message': message,
+            'is_sent': False,
+        })
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse

@@ -191,7 +191,7 @@ class Message(models.Model):
 
     title = models.CharField(max_length=255)
     body = models.TextField()
-    date = models.DateTimeField(auto_now_add=True)
+    date = models.DateTimeField()
     is_read = models.BooleanField(default=False)
 
     def __str__(self):
