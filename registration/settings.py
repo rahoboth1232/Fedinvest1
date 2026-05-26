@@ -14,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-972u&--v6j1eg(vgp+ug6&1#kl1bt*4#ja6d8-&r7+28bruqx-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 
 ALLOWED_HOSTS = [
@@ -89,8 +89,8 @@ CSRF_TRUSTED_ORIGINS = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': '/var/www/django_db/db.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': '/var/www/django_db/db.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 

